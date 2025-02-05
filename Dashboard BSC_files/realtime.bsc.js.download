@@ -1,0 +1,582 @@
+﻿var urlApi = $('#configurlthongbao').data('api-url'); /*'https://thongbao.toppion.com.vn';*/
+var connectionStarted = false;
+var siteName = '';
+var connectionID = "";
+var signalRHub = null;
+var chatHub = null;
+var chatList = null;
+var notificationList = null;
+! function ($) {
+    "use strict";
+
+    var StartSignal = function () { };
+
+    StartSignal.prototype.Init = function () {
+
+        signalRHub = $.connection.messagesHub;
+
+        signalRHub.client.clearCacheLicense = function (licenseKey) {
+            if (licenseKey.indexOf(licenseClient) > -1 && licenseClient != '') {
+                ClearLicenseMemory();
+            }
+        };
+
+        signalRHub.client.LoadNotification = function (data) {
+            if (data.site == userSite) {
+                //loadNotification();
+            }
+        };
+
+        signalRHub.client.sendKhaoSat360 = function (khaoSatID, action, data) {
+            if ($(`body[controller="khaosatfollow360"]`).length > 0) {
+                if ($(`.app-main__inner[data-id="${khaoSatID}"]`).length > 0) {
+                    if (typeof LoadTable !== 'undefined') {
+                        LoadTable();
+                        if (action == 'send-survey') {
+                            NotifySmall('success', 'Có đợt đánh giá mới được hoàn thành!');
+                        }
+                    }
+                }
+            }
+        }
+
+        signalRHub.client.sendCastScreen = function (hopTuanID, action, data) {
+            console.log(hopTuanID, action, data);
+            if ($('#videoHopTuanStream').length > 0) {
+                var video = document.querySelector('video');
+                console.log(data);
+                //video.src = '/uploads/stream/' + data;
+                //video.play();
+            }
+        };
+
+
+        signalRHub.client.sendKeHoach = function (keHoachID, action, data) {
+
+            if (action == 'screen') {
+                console.log(keHoachID, action, data);
+                if ($('#videoHopTuanStream').length > 0) {
+                    console.log(data);
+                }
+            } else {
+
+                if ($(`.box-kehoach-congviec[data-id="${keHoachID}"]`).length > 0) {
+                    if (action == 'thaoluan') {
+                        $('.congviec-thaoluans').html(data);
+                    } else if (action == 'congviecon') {
+                        $('.congviec-subs').html(data);
+                    } else if (action == 'lichsu') {
+                        $('.congviec-lichsu').html(data);
+                    } else if (action == 'NoiDung' || action == 'SanPhamBanGiao' || action == 'KetQuaCongViec') {
+                        let elInput = $(`textarea[name="${action}"]`);
+                        elInput.val(data);
+                        let elBox = elInput.closest('.congviec-noidung');
+                        elBox.find('.content').html(elInput.val().replaceAll('\n', '<br>'));
+                    } else if (action == 'files') {
+                        $('ul.congviec-files').html(data);
+                    } else if (action == 'loaibaocao') {
+                        $('[name="PhanTramHoanThanh"]').val(data.PhanTramHoanThanh);
+                        $('[name="PhanTramHoanThanh"]').prop('disabled', data.LoaiBaoCao);
+                        $('[name="LoaiBaoCao"]').prop('checked', data.LoaiBaoCao);
+                    } else if (action == 'phantramhoanthanh') {
+                        $('[name="PhanTramHoanThanh"]').val(data.PhanTramHoanThanh);
+                    } else if (action == 'nguoihotro' || action == 'hoanthanhcongviec') {
+                        LoadJsonNhanVien();
+                    }
+                }
+
+                countNotification();
+                if ($('.box-notification').css('display') == 'block') {
+                    loadNotification();
+                }
+            }
+        };
+
+        signalRHub.client.sendVHKeHoachbyDatas = function (pushDatas) {
+
+            for (var i = 0; i <= pushDatas.length - 1; i++) {
+
+                let pushData = pushDatas[i];
+
+                let keHoachID = pushData.keHoachID;
+                let action = pushData.name;
+                let data = pushData.data;
+
+                if ($(`.box-kehoach-congviec[data-id="${keHoachID}"]`).length > 0) {
+                    if (action == 'thaoluan') {
+                        $('.congviec-thaoluans').html(data);
+                    } else if (action == 'congviecon') {
+                        $('.congviec-subs').html(data);
+                    } else if (action == 'lichsu') {
+                        $('.congviec-lichsu').html(data);
+                    } else if (action == 'NoiDung' || action == 'SanPhamBanGiao' || action == 'KetQuaCongViec') {
+                        let elInput = $(`textarea[name="${action}"]`);
+                        elInput.val(data);
+                        let elBox = elInput.closest('.congviec-noidung');
+                        elBox.find('.content').html(elInput.val().replaceAll('\n', '<br>'));
+                    } else if (action == 'files') {
+                        $('ul.congviec-files').html(data);
+                    } else if (action == 'loaibaocao') {
+                        $('[name="PhanTramHoanThanh"]').val(data.PhanTramHoanThanh);
+                        $('[name="PhanTramHoanThanh"]').prop('disabled', data.LoaiBaoCao);
+                        $('[name="LoaiBaoCao"]').prop('checked', data.LoaiBaoCao);
+                    } else if (action == 'phantramhoanthanh') {
+                        $('[name="PhanTramHoanThanh"]').val(data.PhanTramHoanThanh);
+                    } else if (action == 'nguoihotro' || action == 'hoanthanhcongviec') {
+                        LoadJsonVHNhanVien(keHoachCongViecID, '');
+                    }
+                    //NotifySmall('success', 'Kế hoạch vừa được cập nhật');
+                    //loadNotification();
+                }
+            }
+
+
+            //if ($('body[controller="congviec"]').length > 0 || $('body[controller="bangkehoach"]').length > 0) {
+            //    NotifySmall('success', 'Có công việc vừa được cập nhật!');
+            //}
+
+            countNotification();
+            if ($('.box-notification').css('display') == 'block') {
+                loadNotification();
+            }
+        };
+
+        signalRHub.client.sendKeHoachbyDatas = function (pushDatas) {
+
+            for (var i = 0; i <= pushDatas.length - 1; i++) {
+
+                let pushData = pushDatas[i];
+
+                let congViecID = pushData.keHoachID;
+                let mucTieuID = pushData.mucTieuID;
+                let action = pushData.name;
+                let data = pushData.data;
+
+                if (action.indexOf('threads') > -1) {
+
+                    console.log(pushData);
+
+                    if (pushData.threadID != undefined) {
+                        let threadID = pushData.threadID;
+
+                        let elItem = $(`.box-threads-post[data-id="${threadID}"]`);
+
+                        if (elItem.length > 0) {
+
+                            if (action == 'threads_comment_delete') {
+                                $(`.congviec-thaoluan[data-item="${congViecID}"]`).remove();
+
+                                let elThaoLuanRoot = elItem.find('.congviec-thaoluan-root');
+                                let total = toFloat(elThaoLuanRoot.attr('data-total'));
+                                elThaoLuanRoot.attr('data-total', --total);
+                                elItem.find(`.total-comment`).html(total);
+
+                            } else if (action == 'threads_comment_edit') {
+                                $(`.congviec-thaoluan[data-item="${congViecID}"] .congviec-thaoluan-item .congviec-thaoluan-react .text`).html(data);
+                            } else if (action == "threads_comment") {
+                                let elThaoLuanRoot = elItem.find('.congviec-thaoluan-root');
+                                let total = toFloat(elThaoLuanRoot.attr('data-total'));
+                                elThaoLuanRoot.attr('data-total', ++total);
+                                elItem.find(`.total-comment`).html(total);
+
+                                let boxComment = $(`.congviec-thaoluan[data-item="${congViecID}"]`);
+                                if (congViecID > 0 && boxComment.length > 0) {
+                                    if (boxComment.find(` > .congviec-thaoluan-subs`).length == 0) {
+                                        boxComment.append('<div class="congviec-thaoluan-subs"></div>');
+                                    }
+                                    boxComment.find(` > .congviec-thaoluan-subs`).append(data);
+                                } else if (congViecID == 0) {
+                                    elThaoLuanRoot.append(data);
+                                }
+                            } else if (action == "threads_like") {
+                                var iconLikes = data.LikeUserID.splitSafe(',').map(function (v) {
+                                    return v.splitSafe(':')[1];
+                                });
+                                var icons = [];
+                                if (iconLikes.includes('like')) {
+                                    icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/like.svg" />');
+                                }
+                                if (iconLikes.includes('haha')) {
+                                    icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/haha.svg" />');
+                                }
+                                if (iconLikes.includes('tim')) {
+                                    icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/tim.svg" />');
+                                }
+                                if (iconLikes.includes('thuong')) {
+                                    icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/thuong.svg" />');
+                                }
+                                elItem.find('.box-threads-post-toolbar-like-view .icon-react').html(`${icons.join('')} <span class="total-like">${data.Like}</span>`);
+                                elItem.find(`.total-like`).html(data.Like);
+                            }
+                        } else if (action == "threads_like_comment" && $(`.congviec-thaoluan[data-item="${threadID}"]`).length > 0) {
+                            elItem = $(`.congviec-thaoluan[data-item="${threadID}"]`);
+                            var iconLikes = data.LikeUserID.splitSafe(',').map(function (v) {
+                                return v.splitSafe(':')[1];
+                            });
+                            var icons = [];
+                            if (iconLikes.includes('like')) {
+                                icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/like.svg" />');
+                            }
+                            if (iconLikes.includes('haha')) {
+                                icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/haha.svg" />');
+                            }
+                            if (iconLikes.includes('tim')) {
+                                icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/tim.svg" />');
+                            }
+                            if (iconLikes.includes('thuong')) {
+                                icons.push('<img class="x16dsc37" height="18" role="presentation" width="18" src="/Content/View/img/icon/fb/thuong.svg" />');
+                            }
+                            elItem.find('.congviec-thaoluan-react .icon-react').html(`${icons.join('')} <span class="total-like">${data.Like}</span>`);
+                            elItem.find(`.total-like`).html(data.Like);
+                            if (data.Like > 0) {
+                                elItem.find(`.total-like`).removeClass('hidden');
+                            } else {
+                                elItem.find(`.total-like`).addClass('hidden');
+                            }
+                        }
+
+                        if (action == "threads_new" || action == "threads_update") {
+                            LoadEntry(threadID, action);
+                        } else if (action == "threads_delete") {
+                            elItem.remove();
+                        }
+
+                    }
+
+                    if (pushData.groupID != undefined) {
+                        var groupID = pushData.groupID;
+                        let elGroup = $(`.group-header[data-id="${groupID}"]`);
+
+                        if (elGroup.length > 0) {
+                            if (action == "threads_group_update_member") {
+                                console.log('loadMember');
+                                loadMember();
+                            }
+                        }
+                    }
+
+                } else if ($(`.box-kehoach-congviec[data-id="${congViecID}"]`).length > 0) {
+                    if (action == 'nguoihotro' || action == 'stateapproved') {
+
+                        let msg = 'Công việc này vừa được cập nhật người hỗ trợ, bạn có muốn tải lại nội dung công việc?';
+                        if (action == 'stateapproved') {
+                            msg = 'Công việc này vừa được cập nhật trạng thại từ Bộ phận/Người phụ trách chính!';
+                        }
+
+                        LoadTable();
+                        RemoveLoading();
+
+                        Lobibox.confirm({
+                            title: 'Thông báo',
+                            msg: msg,
+                            buttons: {
+                                ok: {
+                                    text: 'Đồng ý',
+                                    'class': 'btn btn-danger',
+                                    closeOnClick: true
+                                },
+                                cancel: {
+                                    text: 'Đóng',
+                                    'class': 'btn btn-default',
+                                    closeOnClick: true
+                                }
+                            },
+                            callback: function ($this, type) {
+                                if (type === 'ok') {
+                                    XemCongViec(congViecID);
+                                }
+                            }
+                        });
+
+
+
+                    } else if (action == 'thaoluan') {
+                        $('.congviec-thaoluans').html(data);
+                        //LoadThaoLuan(false);
+                    } else if (action == 'lichsu') {
+                        $('.congviec-lichsu').html(data);
+                        $('.open-popup-link').magnificPopup({
+                            type: 'inline',
+                            midClick: true
+                        });
+                        //LoadThaoLuan(false);
+                    }
+                    //Notify('success', 'Kế hoạch vừa được cập nhật');
+                    //loadNotification();
+                } else if (($(`tr[data-tt-id="${congViecID}"]`).length > 0 && action != 'thaoluan') ||
+                    ($('.tablecongviec tbody tr:not(.rowtemp)').length == 0 && $('#txtIDMucTieu').val() == mucTieuID)) {
+                    $('[class*="lobibox"]').remove();
+
+                    if ($('.tablecongviec tbody tr:not(.rowtemp)').length == 0) {
+                        Notify('success', 'Công việc vừa được giao cho bạn!');
+                        LoadTable();
+                    } else {
+                        let msg = `Công việc '${$(`tr[data-tt-id="${congViecID}"] [name="TenCongViec"]`).val()}' vừa được cập nhật, bạn có muốn tải lại danh sách?`;
+
+                        Lobibox.confirm({
+                            title: 'Thông báo',
+                            msg: msg,
+                            buttons: {
+                                ok: {
+                                    text: 'Đồng ý',
+                                    'class': 'btn btn-danger',
+                                    closeOnClick: true
+                                },
+                                cancel: {
+                                    text: 'Đóng',
+                                    'class': 'btn btn-default',
+                                    closeOnClick: true
+                                }
+                            },
+                            callback: function ($this, type) {
+                                if (type === 'ok') {
+                                    LoadTable();
+                                }
+                            }
+                        });
+                    }
+
+                } else if ((action == 'luucongviec' && $.isArray(data)) || ($('#txtIDMucTieu').val() == mucTieuID)) {
+
+                    var tenCongViec = [];
+
+                    for (var i = 0; i <= data.length - 1; i++) {
+                        if ($(`tr[data-tt-id="${data[i].ID}"]`).length > 0) {
+                            tenCongViec.push($(`tr[data-tt-id="${data[i].ID}"] [name="TenCongViec"]`).val());
+                        }
+                    }
+
+                    if (tenCongViec.length > 0) {
+                        Lobibox.confirm({
+                            title: 'Thông báo',
+                            msg: `Công việc '${tenCongViec.join(', ')}' vừa được cập nhật, bạn có muốn tải lại danh sách?`,
+                            buttons: {
+                                ok: {
+                                    text: 'Đồng ý',
+                                    'class': 'btn btn-danger',
+                                    closeOnClick: true
+                                },
+                                cancel: {
+                                    text: 'Đóng',
+                                    'class': 'btn btn-default',
+                                    closeOnClick: true
+                                }
+                            },
+                            callback: function ($this, type) {
+                                if (type === 'ok') {
+                                    LoadTable();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+
+            //if ($('body[controller="congviec"]').length > 0 || $('body[controller="bangkehoach"]').length > 0) {
+            //    Notify('success', 'Có công việc vừa được cập nhật!');
+            //}
+
+            countNotification();
+            if ($('.box-notification').css('display') == 'block') {
+                loadNotification();
+            }
+        };
+
+        signalRHub.client.CapNhatTiTrong = function (data) {
+            if (data.site == userSite) {
+                if (data.message == 'complete') {
+                    $('.btnqueue').remove();
+                } else {
+
+                    if ($('.btnqueue').length == 0) {
+                        $('body').append('<div class="btnqueue"></div>');
+                    }
+                    $('.btnqueue').show();
+                    $('.btnqueue').html(data.message);
+                }
+            }
+        };
+
+        signalRHub.client.NotifyWindow = function (data) {
+            if (data.site == userSite && data.toID == userID) {
+                notifyWindowMe(data.module, data.message, data.url);
+            }
+        };
+
+        signalRHub.client.ImportCongTy = function (data) {
+            //console.log(data);
+        };
+
+        signalRHub.client.reloadNotification = function () {
+            countNotification();
+            if ($('.box-notification').css('display') == 'block') {
+                loadNotification();
+            }
+        };
+
+        signalRHub.client.notifyBySite = function (site, message) {
+            if (siteName == site) {
+                if (message == 'new-updated') {
+                    //localStorage.setItem('new-updated', 'true');
+                    MsgShow($language['bsc.label.thongbao'], 'success', $language['bsc.msg.capnhatphienbanmoi.content']);
+                }
+            }
+        };
+
+        signalRHub.client.NotifyAll = function (message) {
+            console.log('info', message);
+        };
+
+        signalRHub.client.Notify = function (message) {
+            //console.log('info', message);
+        };
+
+        signalRHub.client.Send = function (name, message, time) {
+            //console.log(name + '-' + message + '-' + time);
+        };
+
+        if (typeof (initStartMeeting) == 'function') {
+            initStartMeeting();
+        }
+
+        $.connection.hub.url = urlApi + "/signalr/hubs/";
+
+        $.connection.hub.start().done(function () {
+            chatHub = $.connection.hub;
+            console.log('Đã kết nối tới server: ' + moment(new Date()).format('DD/MM/YYYY HH:mm'));
+            signalRHub.server.addToSite('', siteName);
+
+            if (typeof (startMeetingSignalR) == 'function') {
+                startMeetingSignalR();
+            }
+        });
+
+        $.connection.hub.reconnected(function () {
+            console.log('Kết nối lại server: ' + moment(new Date()).format('DD/MM/YYYY HH:mm'));
+            signalRHub.server.addToSite('', siteName);
+        });
+
+        $.connection.hub.disconnected(function () {
+            //console.log('Mất kết nối tới server: ' + moment(new Date()).format('DD/MM/YYYY HH:mm'));
+            let intervalReconnect = setInterval(function () {
+                //console.log('intervalReconnect');
+                $.connection.hub.start().done(function () {
+                    signalRHub.server.removeFromSite('', siteName);
+                    chatHub = $.connection.hub;
+                    //console.log('Đã kết nối tới server: ' + moment(new Date()).format('DD/MM/YYYY HH:mm'));
+                    signalRHub.server.addToSite('', siteName);
+                    clearInterval(intervalReconnect);
+                });
+            }, 5000);
+        });
+
+    },
+        $.StartSignal = new StartSignal,
+        $.StartSignal.Constructor = StartSignal;
+
+}(window.jQuery);
+
+$.cachedScript = function (url, options) {
+    options = $.extend(options || {}, {
+        dataType: "script",
+        cache: true,
+        url: url
+    });
+    return $.ajax(options);
+};
+
+function StartSignalInit(site) {
+    siteName = site;
+    $.cookie('site_signalR', siteName, { path: '/' });
+    if (urlApi != null) {
+        urlApi = urlApi.replaceAll('/api', '/').replaceAll('"', '');
+        if (!connectionStarted) {
+            connectionStarted = true;
+            $.cachedScript(urlApi + "/signalr/hubs").done(function (script, textStatus) {
+                $.StartSignal.Init();
+            });
+        }
+    }
+}
+
+$(function () {
+    setTimeout("askNotificationPermission();", 500);
+});
+
+function notifyWindowMe(module, message, url) {
+    const img = './Content/View/img/logotoppion2.png';
+    if (!window.Notification) {
+        //console.log('Browser does not support notifications.');
+    } else {
+        // check if permission is already granted
+        if (Notification.permission === 'granted') {
+            // show notification here
+            var notify = new Notification(module, {
+                body: message,
+                icon: img,
+                vibrate: true
+            });
+            if (url != null) {
+                notify.addEventListener('click', () => {
+                    window.open(url, '_blank');
+                });
+            }
+        } else {
+            // request permission from user
+            Notification.requestPermission().then(function (p) {
+                if (p === 'granted') {
+                    // show notification here
+                    var notify = new Notification(module, {
+                        body: message,
+                        icon: img,
+                        vibrate: true
+                    });
+                    if (url != null) {
+                        notify.addEventListener('click', () => {
+                            window.open(url, '_blank');
+                        });
+                    }
+                } else {
+                    Notify('warning', 'Trình duyệt đã khóa thông báo trên Desktop');
+                }
+            }).catch(function (err) {
+                console.error(err);
+            });
+        }
+    }
+}
+
+function askNotificationPermission(isClick) {
+    //console.log('askNotificationPermission');
+    if (!window.Notification) {
+        //console.log('Browser does not support notifications.');
+    } else {
+        //console.log('Browser support notifications.');
+        if (Notification.permission === 'granted') {
+            // show notification here
+            //console.log('notifications is allow.');
+            if (isClick) {
+                Notify('success', 'Trình duyệt đã cho phép thông báo trên Desktop');
+            }
+        } else {
+            // request permission from user
+            Notification.requestPermission().then(function (p) {
+                if (p === 'granted') {
+                    // show notification here
+                    //console.log('notifications is allow.');
+                    if (isClick) {
+                        Notify('success', 'Trình duyệt đã cho phép thông báo trên Desktop');
+                    }
+                } else {
+                    if (isClick) {
+                        Notify('warning', 'Trình duyệt đã khóa thông báo trên Desktop');
+                    }
+                    //console.log('User blocked notifications.');
+                }
+            }).catch(function (err) {
+                console.error(err);
+            });
+        }
+    }
+}

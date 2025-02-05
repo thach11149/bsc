@@ -1,0 +1,225 @@
+﻿function ShowChiTietBaoCao(id, tenkpi) {
+	var url = '/Buoc11/GetBaoCao';
+	Loading();
+	$.ajax({
+		type: "GET",
+		url: url,
+		data: { id: id, datechoice: $(".datepickerbsc").val() },
+		cache: false,
+		success: function (response) {
+			RemoveLoading();
+
+			$('#myModal .modal-title').html($language['bsc.label.baocao']);
+			$('#myModal .modal-body').html(response);
+			var tenkpi = $("#tenkpi").val();
+			$('#myModal .modal-title').html($language['bsc.label.buoc11baocaokpi'] + ': ' + tenkpi);
+			$('.textnoidung').each(function () {
+				$(this).css("height", "auto");
+			}).on('input', function () {
+				this.style.height = 'auto';
+				this.style.height = (this.scrollHeight) + 'px';
+			});
+			$('#myModal').modal('show');
+
+			$('.tablebaocaokpi .maskmoney').onlyNumber({
+				digits: 3,
+				allowDecimalPadding: false
+			});
+
+
+			$(".tablebaocaokpi .maskmoney,.tablebaocaokpi .textnoidung").keyup(function () {
+				$(this).parents("tr").find(".btnLuuBaoCao").show();
+			});
+			$(".tablebaocaokpi .maskmoney,.tablebaocaokpi .textnoidung").bind("paste", function (e) {
+				$(this).parents("tr").find(".btnLuuBaoCao").show();
+			});
+			$(".selbaocaothucte").change(function () {
+				$(this).parents("tr").find(".btnLuuBaoCao").show();
+			});
+
+			arrayFiles = [];
+
+			$('input:file').on('change', function () {
+				var idbc = $(this).data("idbaocao");
+				$.each(this.files, (i, v) => {
+					arrayFiles.push({
+						id: idbc,
+						file: v
+					});
+					var filename = v.name;
+					$('#fileList' + idbc + '').append('<div class="tenfile"><a class="tenfile" style="color:#000;">' + filename + '</a><a onclick="return removeFile(this);" class="remove text-danger" data-toggle="tooltip" title="Delete"><i class="glyphicon glyphicon-remove"></i></a></div>');
+				});
+
+				$('#fUpload' + idbc + '').parents("tr").find(".btnLuuBaoCao").show();
+			});
+		},
+		error: function () {
+			RemoveLoading();
+
+			Notify('warning', $language['bsc.msg.loitai']);
+
+		}
+	});
+
+	return false;
+}
+
+function BrowseServers(idbc) {
+	var popupWinWidth = 1000;
+	var popupWinHeight = 800;
+	var left = (screen.width - popupWinWidth) / 2;
+	var top = (screen.height - popupWinHeight) / 4;
+
+	var t = window.open('/FileManager/', 'File Manager',
+		'resizable=yes, width=' + popupWinWidth
+		+ ', height=' + popupWinHeight + ', top='
+		+ top + ', left=' + left);
+	window.selectedFiles = function (files) {
+		SetFileField(idbc, files);
+	}
+
+	return false;
+}
+
+function SetFileField(idbc, uniqueFiles) {
+
+	var length = uniqueFiles.length;
+
+	for (var i = 0; i < length; i++) {
+		fileUrl = uniqueFiles[i];
+		arrayFiles.push({
+			id: idbc,
+			file: fileUrl
+		});
+		var fileName = getFileName(fileUrl);
+		$('#fileList' + idbc + '').append('<div class="tenfile"><a onclick="return ViewFile(\'' + fileUrl + '\');" class="tenfile" data-file="' + fileUrl + '" style="color:#000;">' + fileName + '</a><a onclick="return removeFile(this);" class="remove text-danger" data-toggle="tooltip" title="Delete"><i class="glyphicon glyphicon-remove"></i></a></div>');
+	}
+	$('#fileList' + idbc + '').parents("tr").find(".btnLuuBaoCao").show();
+}
+
+function AddUrl(idbc) {
+
+	var fileUrl = prompt($language['bsc.title.nhapurl'], "");
+	if (fileUrl != null) {
+		arrayFiles.push({
+			id: idbc,
+			file: fileUrl
+		});
+		var fileName = fileUrl;
+		$('#fileList' + idbc + '').append('<div class="tenfile"><a onclick="return ViewFile(\'' + fileUrl + '\');" class="tenfile" data-file="' + fileUrl + '" style="color:#000;">' + fileName + '</a><a onclick="return removeFile(this);" class="remove text-danger" data-toggle="tooltip" title="Delete"><i class="glyphicon glyphicon-remove"></i></a></div>');
+		$('#fileList' + idbc + '').parents("tr").find(".btnLuuBaoCao").show();
+
+	}
+	return false;
+}
+
+function xembaocao(item, loaiselect, idbaocao) {
+	$(".edittablebsc").find(".activegauge1").removeClass("activegauge1");
+	$(item).parents("tr").addClass("activegauge1");
+	$(".titlebaocao").text($language['bsc.label.baocao']+" " + $(item).text());
+	$("#idbaocao").val(idbaocao);
+	if (loaiselect == 1) {
+		var thucte = $(item).parents("tr").find(".tdthucte").data("idcon");
+		$(".selbaocaothucte").val(thucte);
+
+	}
+	else {
+		var thucte = $(item).parents("tr").find(".tdthucte").text();
+		$(".baocao").val(thucte.replace(",", ""));
+	}
+	$(".danhgia").val($(item).parents("tr").find(".tddanhgia").find(".txtdanhgia").val());
+}
+
+function LuuBaoCao(idbaocao, loaiselect) {
+
+	const rowTable = $('tr[data-idbaocao="' + idbaocao + '"]');
+
+	if (rowTable.length == 0) {
+		alert('Error');
+		return false;
+	}
+
+	var url = '/Buoc11/SaveBaoCao';
+
+	var id = $("#idchitieu").val();
+
+	var soluong = 0;
+
+	if (loaiselect == 1) {
+		soluong = rowTable.find(".selbaocaothucte").val();
+		if (soluong == "") {
+			alert($language['bsc.msg.vuilongchonthucte']);
+
+			return false;
+		}
+
+	}
+	else {
+		soluong = rowTable.find(".baocao").val().replace(/,/g, '');
+	}
+
+	var danhgia = rowTable.find(".txtdanhgia").val();
+
+	Loading();
+
+
+	var formData = new FormData();
+	formData.append('id', id);
+	formData.append('idbaocao', idbaocao);
+	formData.append('soluong', soluong);
+	formData.append('danhgia', danhgia);
+
+	var strtenfile = "";
+
+	//var strtenfilemoi = "";
+	//arrayFiles.forEach(function (v, i) {
+	//    if (v.id == idbaocao) {
+	//        strtenfilemoi += v.file + ",";
+	//    }
+	//});
+	//formData.append('tenfilemoi', strtenfilemoi);
+
+
+	$("#fileList" + idbaocao + " .tenfile[data-file]").each(function () {
+		strtenfile += $(this).attr('data-file') + "####";
+	});
+	formData.append('tenfile', strtenfile);
+
+	$.ajax({
+		type: "POST",
+		url: url,
+		data: formData,
+		dataType: "json",
+		success: function (response) {
+			RemoveLoading();
+			if (response.status) {
+				//HideModal();
+				Notify('success', $language['bsc.msg.luuthanhcong']);
+				$('tr[data-idbaocao="' + idbaocao + '"]').find(".btnLuuBaoCao").hide();
+				$('tr[data-idbaocao="' + idbaocao + '"]').find("td:nth-child(8)").html('<span style="font-weight:bold;" class="text-success">' + $language['bsc.msg.dabaocao'] +'</span>');
+				firstview = "1";
+				LoadTableByTabActive();
+				//UpdateBaoCao(id, idbaocao);
+
+			} else {
+
+				Notify('warning', response.msg);
+
+			}
+		},
+		processData: false,
+		contentType: false,
+		error: function () {
+			RemoveLoading();
+
+			Notify('warning', $language['bsc.msg.loiluu']);
+
+		}
+	});
+
+
+}
+
+function LoadTableByTabActive() {
+	LoadTable($('.tabparent li.active').find('a').attr('href'));
+} 

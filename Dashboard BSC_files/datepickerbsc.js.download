@@ -1,0 +1,286 @@
+﻿let template = '';
+let StartIndexTemp = -1;
+let EndIndexTemp = -1;
+
+! function ($) {
+    "use strict";
+    var DatePickerBSC = function () { };
+    var labelchon = "Chọn";
+    var labeldong = "Đóng";
+    if ($.cookie('langID') == "2") {
+        labelchon = "Select";
+        labeldong = "Close";
+    }
+    template = `<div class="calendarBSCWrap">
+        <div class="calendarBSCYear">
+            <select data-placeholder="Chọn năm" class="form-control selBSCYear" style="text-align: center;">
+            </select>
+        </div>
+        <div class="calendarBSC">
+            <div class="calendarquarter">
+                <div class="itemquarter" data-index="1">Q1</div>
+                <div class="itemquarter" data-index="2">Q2</div>
+                <div class="itemquarter" data-index="3">Q3</div>
+                <div class="itemquarter" data-index="4">Q4</div>
+            </div>
+            <div class="calendarmonth">
+                <div class="itemmonth" data-month="01" data-index="1">
+                    Thg 01
+                </div>
+                <div class="itemmonth" data-month="02" data-index="1">
+                    Thg 02
+                </div>
+                <div class="itemmonth" data-month="03" data-index="1">
+                    Thg 03
+                </div>
+                <div class="itemmonth" data-month="04" data-index="2">
+                    Thg 04
+                </div>
+                <div class="itemmonth" data-month="05" data-index="2">
+                    Thg 05
+                </div>
+                <div class="itemmonth" data-month="06" data-index="2">
+                    Thg 06
+                </div>
+
+                <div class="itemmonth" data-month="07" data-index="3">
+                    Thg 07
+                </div>
+                <div class="itemmonth" data-month="08" data-index="3">
+                    Thg 08
+                </div>
+                <div class="itemmonth" data-month="09" data-index="3">
+                    Thg 09
+                </div>
+
+                <div class="itemmonth" data-month="10" data-index="4">
+                    Thg 10
+                </div>
+                <div class="itemmonth" data-month="11" data-index="4">
+                    Thg 11
+                </div>
+                <div class="itemmonth" data-month="12" data-index="4">
+                    Thg 12
+                </div>
+
+            </div>
+        </div>
+        <div style="width:100%;text-align:center;">
+            <button type="button" class="btn btn-sm btn-success btnGetDatePickerBSC">
+                ${labelchon}
+            </button>
+            <button type="button" class="btn btn-sm btn-default btnCloseDatePickerBSC">${labeldong}</button>
+        </div>
+    </div>`;
+    let option = {
+        YearStartBSC: 2022,
+        YearEndBSC: 2022,
+        YearChoice: 2022,
+        NamTaiChinh: false,
+        MonthTaiChinh: 0,
+        StartIndex: -1,
+        EndIndex: -1
+    };
+    let $elWrap = null;
+    DatePickerBSC.prototype.Init = function (el, option) {
+        this.option = option;
+        $(el).wrap('<div class="datepickerbsc-wrap"></div>');
+        var labelnam = "Năm ";
+        let arrayMonth = ["Thg 01", "Thg 02", "Thg 03", "Thg 04", "Thg 05", "Thg 06", "Thg 07", "Thg 08", "Thg 09", "Thg 10", "Thg 11", "Thg 12"];
+         
+        if ($.cookie('langID') == "2") {
+            labelnam = "";
+            arrayMonth = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        }
+        var $elTemplate = $(template);
+        for (var i = option.YearStartBSC; i <= option.YearEndBSC; i++) {
+            if (i == option.YearChoice) {
+                $elTemplate.find(".selBSCYear").append($('<option>', {
+                    value: i,
+                    text: labelnam + i,
+                    selected: true
+                }));
+            }
+            else {
+                $elTemplate.find(".selBSCYear").append($('<option>', {
+                    value: i,
+                    text: labelnam + i
+                }));
+            }
+        }
+        
+
+        if (option.NamTaiChinh) {
+            $elTemplate.find(".calendarmonth").html('');
+            var quytemp = 1;
+            var khoangcachthang = option.MonthTaiChinh - 1;
+            for (var i = 1; i <= 12; i++) {
+                var txtthang = "0" + (i + khoangcachthang);
+                if ((i + khoangcachthang) >= 10) {
+                    txtthang = "" + (i + khoangcachthang);
+                }
+                if ((i + khoangcachthang) > 12) {
+                    txtthang = "0" + ((i + khoangcachthang) - 12);
+                }
+                var inttxtthang = parseInt(txtthang);
+                $elTemplate.find(".calendarmonth").append($('<div class="itemmonth" data-month="' + txtthang + '" data-index="' + quytemp + '">' + arrayMonth[inttxtthang-1] + '</div>'));
+                if (i % 3 == 0) {
+                    quytemp = quytemp + 1;
+                }
+            }
+        }
+
+
+        if (option.StartIndex > -1 && option.EndIndex > -1) {
+            for (var i = option.StartIndex; i <= option.EndIndex; i++) {
+                $elTemplate.find(".itemmonth").eq(i).addClass("hoveritemmonth");
+            }
+            $elTemplate.find(".itemmonth").eq(option.StartIndex).addClass("active");
+            $elTemplate.find(".itemmonth").eq(option.EndIndex).addClass("active");
+        }
+        $(el).after($elTemplate);
+
+        $elWrap = $(el).parent();
+
+        $.DatePickerBSC.InitEvent($elWrap);
+    },
+        DatePickerBSC.prototype.GetYearBSC = function () {
+            return option.YearStartBSC;
+        },
+        DatePickerBSC.prototype.InitEvent = function (el) {
+            HideOutSide(el);
+            $(el).find('.datepickerbsc,.datepickerbscexport').click(function () {
+                $elWrap.find(".itemmonth").removeClass("active");
+                $elWrap.find(".itemmonth").removeClass("hoveritemmonth");
+                $elWrap.find(".itemquarter").removeClass("active");
+                option.StartIndex = $(".itemmonth[data-month='" + $(this).val().split('/')[1] + "']").index();
+                option.EndIndex = $(".itemmonth[data-month='" + $(this).val().split('/')[3] + "']").index();
+
+                if (option.StartIndex > -1 && option.EndIndex > -1) {
+                    for (var i = option.StartIndex; i <= option.EndIndex; i++) {
+                        $elWrap.find(".itemmonth").eq(i).addClass("hoveritemmonth");
+                    }
+                    $elWrap.find(".itemmonth").eq(option.StartIndex).addClass("active");
+                    $elWrap.find(".itemmonth").eq(option.EndIndex).addClass("active");
+                }
+                $elWrap.find('.calendarBSCWrap').show();
+                return false;
+            });
+            $(el).find('.btnGetDatePickerBSC').click(function () {
+                $elWrap.find('input').val($.DatePickerBSC.GetDate());
+                $elWrap.find('.calendarBSCWrap').hide();
+
+                return false;
+            });
+            $(el).find('.btnCloseDatePickerBSC').click(function () {
+                $elWrap.find(".itemmonth").removeClass("active");
+                $elWrap.find(".itemmonth").removeClass("hoveritemmonth");
+                $elWrap.find(".itemquarter").removeClass("active");
+
+                $elWrap.find('.calendarBSCWrap').hide();
+
+                return false;
+            });
+            $(el).find('.selBSCYear').change(function () {
+                $(el).find(".itemmonth").removeClass("active");
+                $(el).find(".itemquarter").removeClass("active");
+                option.StartIndex = 0;
+                option.EndIndex = 11;
+                for (var i = option.StartIndex; i <= option.EndIndex; i++) {
+                    $(el).find(".itemmonth").eq(i).addClass("hoveritemmonth");
+                }
+                $(el).find(".itemmonth").eq(0).addClass("active");
+                $(el).find(".itemmonth").eq(11).addClass("active");
+            });
+
+            $(el).find(".itemquarter").click(function () {
+                $(el).find(".itemquarter.active").removeClass("active");
+                $(el).find(".itemmonth.hoveritemmonth").removeClass("hoveritemmonth");
+
+                $(this).addClass("active");
+                var indexitem = $(this).data("index");
+                $(el).find(".itemmonth.active").removeClass("active");
+
+                $(el).find(".itemmonth[data-index='" + indexitem + "']").addClass("active");
+
+                option.StartIndex = $(el).find(".itemmonth.active").first().index();
+                option.EndIndex = $(el).find(".itemmonth.active").last().index();
+            });
+            $(el).find(".itemmonth").click(function () {
+                $(el).find(".itemmonth.hoveritemmonth").removeClass("hoveritemmonth");
+                $(el).find(".itemquarter.active").removeClass("active");
+
+                if ($(el).find(".itemmonth.active").length == 0) {
+                    $(el).find(".itemmonth.active").removeClass("active");
+                    $(this).addClass("active");
+                    option.StartIndex = $(this).index();
+                    option.EndIndex = -1;
+                }
+                else if ($(el).find(".itemmonth.active").length == 1) {
+                    if ($(this).hasClass('active')) {
+
+                        if (option.StartIndex == option.EndIndex) {
+                            $(el).find(".itemmonth.active").removeClass("active");
+                            $(this).addClass("active");
+                            option.StartIndex = $(this).index();
+                            option.EndIndex = -1;
+                        } else {
+                            option.EndIndex = $(this).index();
+                        }
+
+                    } else {
+
+                        if ($(this).index() < option.StartIndex) {
+                            $(el).find(".itemmonth.active").removeClass("active");
+                            $(this).addClass("active");
+                            option.StartIndex = $(this).index();
+                            option.EndIndex = -1;
+                        } else {
+                            $(this).addClass("active");
+                            option.EndIndex = $(this).index();
+                        }
+                    }
+                }
+                else if ($(el).find(".itemmonth.active").length >= 2) {
+                    $(el).find(".itemmonth.active").removeClass("active");
+                    $(this).addClass("active");
+                    option.StartIndex = $(this).index();
+                    option.EndIndex = -1;
+                }
+
+                if (option.StartIndex > -1 && option.EndIndex > -1) {
+                    for (var i = option.StartIndex; i <= option.EndIndex; i++) {
+                        $(el).find(".itemmonth").eq(i).addClass("hoveritemmonth");
+                    }
+                }
+
+            });
+            $(el).find(".itemmonth").hover(function () {
+                if (option.StartIndex > -1 && option.EndIndex == -1) {
+                    $(el).find(".itemmonth.hoveritemmonth").removeClass("hoveritemmonth");
+                    var indexcurrent = $(this).index();
+                    for (var i = option.StartIndex; i <= indexcurrent; i++) {
+                        $(el).find(".itemmonth").eq(i).addClass("hoveritemmonth");
+                    }
+                }
+            });
+
+        },
+        DatePickerBSC.prototype.GetDate = function () {
+            if (option.EndIndex == -1) {
+                var firstDay = moment(new Date($elWrap.find(".selBSCYear").val(), (parseInt(option.StartIndex)), 1)).format('DD/MM/YYYY');
+                var lastDay = moment(new Date($elWrap.find(".selBSCYear").val(), (parseInt(option.StartIndex) + 1), 0)).format('DD/MM/YYYY');
+                return firstDay + " - " + lastDay;
+            }
+            else {
+                var firstDay = moment(new Date($elWrap.find(".selBSCYear").val(), (parseInt(option.StartIndex)), 1)).format('DD/MM/YYYY');
+                var lastDay = moment(new Date($elWrap.find(".selBSCYear").val(), (parseInt(option.EndIndex) + 1), 0)).format('DD/MM/YYYY');
+                return firstDay + " - " + lastDay;
+            }
+
+        }
+    $.DatePickerBSC = new DatePickerBSC,
+        $.DatePickerBSC.Constructor = DatePickerBSC;
+
+}(window.jQuery);
+

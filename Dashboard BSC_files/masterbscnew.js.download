@@ -1,0 +1,794 @@
+﻿
+
+var findIndexByKey = function (obj, key, value) {
+    for (var i in obj) {
+        if (obj[i] != null && obj[i][key] == value) {
+            return {
+                Index: i,
+                Data: obj[i]
+            };
+        }
+    }
+    return null;
+}
+function initMenu() {
+    var e = 250, t = 250, a = ($(".sidebar-nav a"),
+        $(".sidebar-nav-menu")),
+        i = $(".sidebar-nav-submenu");
+    a.unbind('click');
+    i.unbind('click');
+    a.click(function () {
+        var a = $(this);
+        if (a.attr('href') == '#') {
+            if (a.parent().hasClass("active") !== !0) {
+                if (a.hasClass("open")) {
+                    a.removeClass("open").next().slideUp(e);
+                } else {
+                    //$(".sidebar-nav-menu.open").removeClass("open").next().slideUp(e);
+                    a.addClass("open").next().slideDown(t);
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    });
+    i.click(function () {
+        var a = $(this);
+        if (a.attr('href') == '#') {
+            if (a.parent().hasClass("active") !== !0) {
+                if (a.hasClass("open")) {
+                    a.removeClass("open").next().slideUp(e);
+                } else {
+                    //a.closest("ul").find(".sidebar-nav-submenu.open").removeClass("open").next().slideUp(e);
+                    a.addClass("open").next().slideDown(t);
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    });
+    if ($("html").data('menu') != undefined) {
+        if (localStorage.getItem('data-menu') != null && localStorage.getItem('data-menu') != undefined && localStorage.getItem('data-menu') == 'menungang') {
+            $(".page-header .header-left h1:first-child").after("<div class='menuhorizontal'>" + $(".sidebar-horizontal").html() + "</div>");
+            $(".page-header .header-left h1").hide();
+            $('.header-info a[onclick="return toggleHeaderMenu(this);"]').find("span").text($language['bsc.label.menu.vertical']);
+        } else {
+            $(".page-header .header-left .menuhorizontal").remove();
+            $(".page-header .header-left h1").show();
+            $('.header-info a[onclick="return toggleHeaderMenu(this);"]').find("span").text($language['bsc.label.menu.horizontal']);
+        }
+    }
+   
+}
+function toggleHeaderMenu(e) {
+
+    if ($('html[data-menu="menungang"]').length > 0) {
+        $('html').attr('data-menu', '');
+        $(".page-header .header-left .menuhorizontal").remove();
+        $(".page-header .header-left h1").show();
+        $(e).find("span").text($language['bsc.label.menu.horizontal']);
+        localStorage.setItem('data-menu', '');
+        $.cookie('data-menu', '', { path: '/' });
+    }
+    else {
+        $('html').attr('data-menu', 'menungang');
+        $(".page-header .header-left h1:first-child").after("<div class='menuhorizontal'>" + $(".sidebar-horizontal").html() + "</div>");
+        $(".page-header .header-left h1").hide();
+        $(e).find("span").text($language['bsc.label.menu.vertical']);
+        localStorage.setItem('data-menu', 'menungang');
+        $.cookie('data-menu', 'menungang', { path: '/' });
+    }
+
+    return false;
+}
+function showAllMenu() {
+    $(`ul.sidebar-nav > li`).addClass('open');
+    //$(`ul.sidebar-nav > li, ul.sidebar-nav > li > ul > li`).addClass('open');
+    $('ul.sidebar-nav li.open > a').addClass('open');
+    $('ul.sidebar-nav li.open > ul').show();
+}
+
+function activeMenu() {
+    let pathUrl = document.location.pathname;
+    $(`ul.sidebar-nav a[href="${pathUrl}"]`).addClass('active');
+    $('ul.sidebar-nav a.active').parents('li').addClass('open');
+    $('ul.sidebar-nav li.open > a').addClass('open');
+    $('ul.sidebar-nav li.open > ul').show();
+}
+
+let notifiTimOut = null;
+function countNotification() {
+    if (notifiTimOut) {
+        clearTimeout(notifiTimOut);
+    }
+
+    let phanHe = $('html').data('phanhe');
+
+    $.ajax({
+        url: '/notify/countnotification',
+        type: 'POST',
+        data: {
+            phanHe: phanHe
+        },
+        dataType: 'JSON',
+        success: function (data) {
+            let elbox = $('.header-noti-count').next('.box-notification');
+
+            let totalNoti = data.total;
+
+            $('.header-noti-count').attr('data-total', data.totalAll);
+            $('.header-noti-count').attr('data-unread', data.total);
+
+            $('.header-noti-count,.togglenotification button').unbind('click');
+            if (totalNoti > 0) {
+                $('.header-noti-count').addClass('text-danger');
+                $('.header-noti-count').html('<i class="fa fa-bell" aria-hidden="true"></i><span class="badge">' + data.total + '</span>');
+
+            } else {
+                $('.header-noti-count').removeClass('text-danger');
+                $('.header-noti-count').html('<i class="fa fa-bell" aria-hidden="true"></i>');
+            }
+
+            $('.header-noti-count,.togglenotification button').click(function () {
+                if (elbox.css('display') == 'block') {
+                    elbox.hide();
+                } else {
+                    elbox.show();
+                }
+                $('#checkclicktb').val('true');
+                loadNotification();
+                return false;
+            });
+            HideOutSide(".box-notification");
+            /*notifiTimOut = setTimeout("countNotification()", 15000);*/
+        }
+    });
+}
+
+function getTanSuatNotification() {
+    $.ajax({
+        url: '/notify/GetTanSuatNotification',
+        cache: false,
+        type: 'POST',
+        data: {},
+        success: function (data) {
+            $('#ddlTanSuatThongBao').val(data);
+        }
+    });
+}
+
+function setTanSuatNotification() {
+    let tansuat = $('#ddlTanSuatThongBao').val();
+    $.ajax({
+        url: '/notify/SetTanSuatNotification',
+        cache: false,
+        type: 'POST',
+        data: { tansuat: tansuat },
+        success: function (data) {
+        }
+    });
+}
+
+//read = "read" đánh dấu khi chọn đọc
+function loadServerSideNotification(read = "") {
+
+    let elbox = $('.pagenotification-init');
+    let loaixem = $("#loaixem").val();
+    if (loaixem == undefined) {
+        loaixem = "1";
+    }
+    let arrayID = elbox.find('.wrapthaoluan-tatca[data-id][data-loaixem="' + loaixem + '"]').map(function () {
+        return $(this).attr('data-id');
+    }).get().join(',');
+    let phanHe = $('html').data('phanhe');
+    $.ajax({
+        url: '/notify/ServerSideTable',
+        cache: false,
+        type: 'GET',
+        data: { loaixem: loaixem, arrayIDs: arrayID, read: read, phanHe: phanHe },
+        success: function (data) {
+
+            if (arrayID == '') {
+                elbox.html(data);
+                let panel = $('.panel');
+                panel.scroll(function () {
+                    if (panel.find('.panel-body-tatca .loading').length == 0) {
+                        if (panel.scrollTop() + panel.height() > panel.find('.panel-body-tatca').height() - 50) {
+
+                            let totalShow = panel.find('.wrapthaoluan-tatca[data-id]').map(function () {
+                                return $(this).attr('data-id');
+                            }).get().length;
+
+                            let loaixem = $("#loaixem").val();
+                            let totalAll = loaixem == "1" ? toFloat($('.header-noti-count').attr('data-total')) : toFloat($('.header-noti-count').attr('data-unread'));
+
+                            if (totalShow < totalAll) {
+                                panel.find('.panel-body-tatca').append('<div class="loading" style="text-align:center;"><img src="/Content/View/img/loading-ellipsis.gif" /></div>');
+                                loadServerSideNotification();
+                            }
+                        }
+                    }
+                });
+            } else {
+                if (read == "read") {
+                    elbox.find('.panel-body-tatca').html(data); //load lại khi nhấn đọc
+                } else {
+                    elbox.find('.panel-body-tatca').append(data); //load thêm khi scroll
+                }
+            }
+
+            elbox.find('.panel-body-tatca .loading').remove();
+        }
+    });
+}
+
+
+//read = "read" đánh dấu khi chọn đọc
+//click = true đánh dấu khi nhấn icon thông báo header
+function loadNotification(read = "", click = false) {
+    if (notifiTimOut) {
+        clearTimeout(notifiTimOut);
+    }
+
+    let type = $('.bodynotification ul.nav li.active a').length > 0 ? $('.bodynotification ul.nav li.active a').attr('href').replace('#noti_', '') : '';
+
+    let phanHe = $('html').data('phanhe');
+
+    let loaixem = $(".selLoaiXemThongBao").prop("checked") == true ? "1" : "0";
+    let arrayID = $('.bodynotification .tab-pane.active .wrapthaoluan[data-id][data-loaixem="' + loaixem + '"]').map(function () {
+        return $(this).attr('data-id');
+    }).get().join(',');
+
+    let elbox = $('.bodynotification');
+
+    if (arrayID == '') {
+        elbox.html('<div class="loading-elip"></div>');
+    }
+
+    $.ajax({
+        url: '/notify/notification',
+        cache: false,
+        type: 'GET',
+        data: { loaixem: loaixem, arrayIDs: arrayID, read: read, phanHe: phanHe, type: type },
+        success: function (data) {
+
+            if (arrayID == '') {
+                elbox.html(data);
+                elbox.find('.panel').each(function () {
+                    let elBoxScroll = $(this);
+                    elBoxScroll.scroll(function () {
+                        if (elBoxScroll.find('.panel-body .loading').length == 0) {
+                            if (elBoxScroll.scrollTop() + elBoxScroll.height() > elBoxScroll.find('.panel-body').height() - 50) {
+                                loaixem = $(".selLoaiXemThongBao").prop("checked") == true ? "1" : "0";
+                                let totalShow = elBoxScroll.find('.wrapthaoluan[data-id][data-loaixem="' + loaixem + '"]').map(function () {
+                                    return $(this).attr('data-id');
+                                }).get().length;
+
+                                let totalAll = elBoxScroll.attr('data-total');
+
+                                if (totalShow < totalAll) {
+                                    elBoxScroll.find('.panel-body').append('<div class="loading" style="text-align:center;"><img src="/Content/View/img/loading-ellipsis.gif" /></div>');
+                                    loadNotification('more');
+                                }
+                            }
+                        }
+                    });
+                });
+            } else {
+                if (read == "read") {
+                    elbox.find('.panel-body').html(data); //load lại khi nhấn đọc
+                } else {
+                    elbox.find('.tab-pane.active .panel-body').append(data); //load thêm khi scroll
+                }
+            }
+
+            elbox.find('.panel-body .loading').remove();
+
+            $('.header-noti-count,.togglenotification button').unbind('click');
+            $('.header-noti-count,.togglenotification button').click(function () {
+                if (elbox.parent().css('display') == 'block') {
+                    elbox.parent().hide();
+                } else {
+                    elbox.parent().show();
+                }
+                return false;
+            });
+            var checkPage = window.location.pathname;
+            if (checkPage == '/thong-bao' && $('#checkclicktb').val() == "false" && click == false) {
+                if (read == "read") {
+                    loadServerSideNotification("read");
+                } else {
+                    loadServerSideNotification();
+                }
+            }
+            $('#checkclicktb').val('false');
+        }
+    });
+}
+function ShowXuongCaNotification(id, idkpi, idmuctieu, nam, phutrach) {
+    var url = '/Buoc6/GetModalXuongCa';
+    Loading();
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: {
+            id: idmuctieu,
+            datechoice: nam,
+            selectbophan: phutrach,
+            idkpi: idkpi
+        },
+        cache: false,
+        success: function (response) {
+            RemoveLoading();
+            $('#myModal .modal-title').html($language['bsc.label.xemxuongca']);
+            $('#myModal .modal-body').html(response);
+            $('#myModal').modal('show');
+            initXuongCa($(".groupkpi"));
+            autoPositionMucTieuNotification();
+            TooltipGhiChuNotification();
+            readNotify(id);
+            //LoadTableXuongCa(id);
+        },
+        complete: function () {
+            setTimeout(function () {
+                autoPositionMucTieuNotification();
+            }, 250);
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+
+}
+function initXuongCa(item) {
+    $(item).find('.textnoidung').each(function () {
+        this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;');
+    }).on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    var index = 1;
+    $(item).find('.parentindex').each(function () {
+        $(this).find("span.badgenumber").text("" + index);
+        index++;
+    });
+    $(item).find('span.badgenumber').each(function () {
+        if ($(this).text().length == 1) {
+            $(this).next().css("text-indent", "31px");
+        }
+        else if ($(this).text().length == 2) {
+            $(this).next().css("text-indent", "40px");
+        }
+        else if ($(this).text().length == 3) {
+            $(this).next().css("text-indent", "45px");
+        }
+        else if ($(this).text().length == 4) {
+            $(this).next().css("text-indent", "55px");
+        }
+    });
+
+
+    $(item).find('.noidungmuctieutong').on('input', function () {
+        $(this).parents(".muctieutong").data("edit", "True");
+        checkstatus = true;
+    });
+    $(item).find('.noidungmuctieucon').on('input', function () {
+        $(this).parents(".wrapmuctieu").data("edit", "True");
+        checkstatus = true;
+    });
+
+
+    $(item).find('.contentkpi').on('input', function () {
+        checkstatus = true;
+        var id = $(this).parent().parent().data("kpi");
+        $("div[id='" + id + "']").data("edit", "True");
+
+    });
+
+    $(item).find(".divscrollflex").each(function () {
+        makeScrollFake($(this).parents('.xuongcatrai'));
+    });
+    $(".parentmuctieu,.muctieutong").click(function (event) {
+        $(this).find("textarea").focus();
+    });
+}
+function autoPositionMucTieuNotification() {
+
+    $(".giuaarrow").each(function () {
+        var positionarrow = $(this).position().top;
+        var divdauca = $(this).parents(".groupkpi").find(".xuongcaphai");
+        var heightmuctieutrong = $(divdauca).find(".muctieutong").outerHeight();
+        $(divdauca).css("margin-top", (positionarrow + 49 - ((heightmuctieutrong + 10) / 2)) + "px");
+    });
+}
+function TooltipGhiChuNotification() {
+    $('.tooltipghichuxuongca:not(.tooltipstered)').each(function () {
+        var parentdiv = $(this).parent().parent();
+        if ($(parentdiv).hasClass("duoikpi")) {
+            $(this).tooltipster({
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                position: 'bottom'
+            });
+        }
+        else {
+            $(this).tooltipster({
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                position: 'top'
+            });
+        }
+    });
+
+    $('.tooltipghichu:not(.tooltipstered)').tooltipster({
+        contentAsHTML: true,
+        interactive: true,
+        arrow: true,
+        theme: 'tooltipster-light',
+        position: 'bottom'
+    });
+}
+
+//function loadNotification() {
+//    if (notifiTimOut) {
+//        clearTimeout(notifiTimOut);
+//    }
+
+//    $.ajax({
+//        url: '/notify/notification',
+//        dataType: 'JSON',
+//        success: function (data) {
+//            let elbox = $('.header-noti-count').next('.box-notification');
+
+//            let totalNoti = data.total;
+
+//            elbox.html('');
+
+//            if (totalNoti > 0) {
+//                $('.header-noti-count').addClass('text-danger');
+//                $('.header-noti-count').html('<i class="fa fa-bell" aria-hidden="true"></i><span class="badge">' + data.total + '</span>');
+
+//            } else {
+//                $('.header-noti-count').removeClass('text-danger');
+//                $('.header-noti-count').html('<i class="fa fa-bell" aria-hidden="true"></i>');
+//                elbox.html('<div style="text-align: center;padding:5px;">Chưa có thông báo mới nào</li>');
+//            }
+
+//            $('.header-noti-count').unbind('click');
+//            $('.header-noti-count').click(function () {
+//                if ($('body').hasClass('show-notification')) {
+//                    $('body').removeClass('show-notification');
+//                    elbox.hide();
+//                } else {
+//                    $('body').addClass('show-notification');
+//                    elbox.show();
+//                }
+//                return false;
+//            });
+
+//            if (data.dataBSC.length > 0) {
+//                $.each(data.dataBSC, function (i, v) {
+//                    let elUL = $('<ul></ul>');
+
+//                    if (v.Group == 'xuongca') {
+//                        elUL.append('<li><h3 class="title">B5. Xương cá</h3></li>');
+//                    }
+
+//                    $.each(v.List, function (j, l) {
+//                        if (v.Group == 'xuongca') {
+//                            l.Url = '/mo-hinh-xuong-ca';
+//                        }
+
+//                        var sClass = l.Read ? 'read' : 'unread';
+//                        if (l.Read) {
+//                            elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.ItemID + '\', \'' + l.Ids + '\')">' + l.Content + '<time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//                        } else {
+//                            if (l.Count == 1) {
+//                                elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.ItemID + '\', \'' + l.Ids + '\')">' + l.Content + '<time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//                            } else {
+//                                elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.ItemID + '\', \'' + l.Ids + '\')">' + l.Content + ' <span class="badge">' + l.Count + '</span><time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//                            }
+//                        }
+//                    });
+
+//                    elbox.append(elUL);
+//                });
+//            }
+
+//            //if (data.dataVH.length > 0) {
+//            //    elbox.html('');
+//            //    $.each(data.dataVH, function (i, v) {
+//            //        if (v.Module == 'vanhoa') {
+
+//            //            let elUL = $('<ul></ul>');
+
+//            //            if (v.Action == 'kehoach_thaoluan') {
+//            //                elUL.append('<li><h3 class="title">Thảo luận</h3></li>');
+//            //            } else if (v.Action == 'kehoach_capnhat') {
+//            //                elUL.append('<li><h3 class="title">Cập nhật công việc</h3></li>');
+//            //            } else if (v.Action == 'bangkehoach') {
+//            //                elUL.append('<li><h3 class="title">Kế hoạch hành động</h3></li>');
+//            //            } else if (v.Action == 'kehoach_congvieccon') {
+//            //                elUL.append('<li><h3 class="title">Công việc con</h3></li>');
+//            //            }
+
+//            //            $.each(v.List, function (j, l) {
+//            //                var sClass = l.Read ? 'read' : 'unread';
+//            //                if (l.Read) {
+//            //                    elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.Ids + '\')">' + l.Content + '<time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//            //                } else {
+//            //                    if (l.Count == 1) {
+//            //                        elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.Ids + '\')">' + l.Content + '<time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//            //                    } else {
+//            //                        elUL.append('<li class="line-bottom ' + sClass + '"><a href="#" onclick="return readVHNotify(\'' + l.Url + '\', \'' + l.Ids + '\')">' + l.Content + ' <span class="badge">' + l.Count + '</span><time><i class="fa fa-clock-o" aria-hidden="true"></i> ' + l.Time + '</time></a></li>');
+//            //                    }
+//            //                }
+//            //            });
+
+//            //            elbox.append(elUL);
+//            //        }
+//            //    });
+//            //}
+
+//            //notifiTimOut = setTimeout("loadNotification()", 15000);
+//        }
+//    });
+//}
+
+function readAllNotify() {
+    Loading();
+    $.ajax({
+        url: '/notify/readallnotify',
+        success: function (data) {
+            RemoveLoading();
+            countNotification();
+            loadNotification("read");
+        }
+    });
+    return false;
+}
+function readNotify(ids) {
+    $.ajax({
+        url: '/notify/readnotify',
+        data: {
+            id: ids
+        },
+        success: function (data) {
+            countNotification();
+            loadNotification("read");
+        }
+    });
+    return false;
+}
+function readNotifywithURL(url, itemID, ids, namecookie, valuecookie) {
+
+    $(`.bodynotification [data-id="${ids}"]`).addClass('read');
+
+    $.ajax({
+        url: '/notify/readnotify',
+        data: {
+            id: ids
+        },
+        success: function (data) {
+            countNotification();
+            //loadNotification("read");
+        }
+    });
+    if (url != '' && document.location.href.indexOf(url) == -1) {
+        Loading();
+        if (namecookie != '') {
+            $.cookie(namecookie, valuecookie, { path: "/" });
+        }
+        if (url.indexOf('/van-hoa/khao-sat') > -1) {
+            window.open(url);
+            RemoveLoading();
+        } else if (url.indexOf('thread_thaoluan') > -1) {
+            document.location.href = '/threads/redirect?id=' + itemID;
+        } else if (url.indexOf('thread_group') > -1) {
+            document.location.href = '/threads/group/' + itemID;
+        } else {
+            document.location.href = url;
+        }
+    } else {
+        if (url.indexOf('/du-an') > -1) {
+            XemCongViec(itemID,"congviec");
+        } 
+        else if (url.indexOf('/cong-viec') > -1 && $.isNumeric(valuecookie)) {
+            XemCongViec(valuecookie);
+        } else if (url.indexOf('/bang-ke-hoach') > -1 && $.isNumeric(valuecookie)) {
+            if (typeof LoadJsonVHNhanVien == 'function') {
+                LoadJsonVHNhanVien(valuecookie, url);
+            }
+        }
+        scrollByHash('#' + itemID);
+    }
+
+    return false;
+}
+function readVHNotify(url, itemID, ids) {
+    $.ajax({
+        url: '/notify/readnotify',
+        data: {
+            id: ids
+        },
+        success: function (data) {
+            loadNotification();
+        }
+    });
+    if (url != '' && document.location.href.indexOf(url) == -1) {
+        Loading();
+        document.location.href = url + '#' + itemID;
+    } else {
+        scrollByHash('#' + itemID);
+    }
+    /*  $('.header-noti-count').next('.box-notification').hide();*/
+
+    return false;
+}
+
+$(function () {
+    initMenu();
+    activeMenu();
+    showAllMenu();
+    scrollByHash(null);
+    setTimeout(function () {
+        countNotification();
+        getTanSuatNotification();
+    }, 4000);
+    $(document).on("ajaxComplete", function (event, xhr, settings) {
+        if (settings.url.indexOf('ServerSideTable') > -1) {
+            scrollByHash(null);
+        }
+    });
+
+
+});
+
+function scrollByHash(hasID) {
+    if (hasID == null) {
+        if (document.location.hash != '') {
+            hasID = document.location.hash;
+        }
+    }
+    if (hasID != null && hasID.indexOf('#') > -1 && $(hasID).length > 0) {
+        remove_hash_from_url();
+        $('html,body').scrollTop($(hasID).offset().top - 140);
+    }
+}
+
+function remove_hash_from_url() {
+    var uri = window.location.toString();
+
+    if (uri.indexOf("#") > 0) {
+        var clean_uri = uri.substring(0,
+            uri.indexOf("#"));
+
+        window.history.replaceState({},
+            document.title, clean_uri);
+    }
+}
+
+function decodeHtml(encodedString) {
+    var textArea = document.createElement('textarea');
+    textArea.innerHTML = encodedString;
+    return textArea.value;
+}
+
+function LoadViecTrongNgay() {
+
+    //if (opener != null) return false;
+
+    let htmlViecTrongNgay = `<div class="box-viec-trong-ngay">
+                                <div class="box-viec-trong-ngay-title">${$language['bsc.btn.viectrongngay']} <button type="button" onclick="return toggleViecTrongNgay(this);"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>
+                                <div class="box-viec-trong-ngay-body"></div>
+                            </div>`;
+
+    $.ajax({
+        url: '/Buoc12/LoadViecTrongNgay',
+        cache: false,
+        data: { datechoice: $(".datepickerbsc").val(), selectbophan: idbophanselect },
+        type: 'GET',
+        success: function (data) {
+            if ($('.box-viec-trong-ngay').length == 0) {
+                $('body').append(htmlViecTrongNgay);
+            }
+
+            $('.box-viec-trong-ngay-body').html(data);
+
+            if ($.cookie('close-viec-trong-ngay') == 'true') {
+                let height = $('.box-viec-trong-ngay').outerHeight();
+                $('.box-viec-trong-ngay').animate({ bottom: height * -1 },
+                    'slow', function () {
+                        $('.box-viec-trong-ngay-title').find('button').html('<i class="fa fa-chevron-up" aria-hidden="true"></i>');
+                        $('.box-viec-trong-ngay').addClass('box-collapse');
+                        $('.box-viec-trong-ngay').animate({ bottom: 34 - height },
+                            'slow', function () {
+                                $.cookie('close-viec-trong-ngay', 'true', { path: "/" });
+                            });
+                    });
+            } else {
+                $('.box-viec-trong-ngay').animate({ bottom: 20 },
+                    'slow', function () { });
+            }
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loitai']);
+        }
+    });
+    return false;
+}
+
+
+function toggleViecTrongNgay(e) {
+    let height = $('.box-viec-trong-ngay').outerHeight();
+    if ($('.box-viec-trong-ngay').hasClass('box-collapse')) {
+        $('.box-viec-trong-ngay').removeClass('box-collapse');
+        $('.box-viec-trong-ngay').animate({ bottom: 20 },
+            'slow', function () {
+                $(e).html('<i class="fa fa-chevron-down" aria-hidden="true"></i>');
+                $.cookie('close-viec-trong-ngay', '', { path: "/" });
+            });
+    } else {
+        $('.box-viec-trong-ngay').animate({ bottom: height * -1 },
+            'slow', function () {
+                $(e).html('<i class="fa fa-chevron-up" aria-hidden="true"></i>');
+                $('.box-viec-trong-ngay').addClass('box-collapse');
+                $('.box-viec-trong-ngay').animate({ bottom: 34 - height },
+                    'slow', function () {
+                        $.cookie('close-viec-trong-ngay', 'true', { path: "/" });
+                    });
+            });
+    }
+}
+
+function initAliasName() {
+    $(".aliasname:not(.initAlias)").each(function () {
+        if (!$(this).hasClass("hasImg")) {
+            if ($(this).hasClass("hasPrefix")) {
+                var nametext = $(this).attr("data-aliasname");
+                $(this).css('background-color', genColorByName(nametext));
+            }
+            else {
+                var nametext = $(this).attr("data-aliasname");
+                $(this).text(genAliasName(nametext));
+                $(this).css('background-color', genColorByName(nametext));
+            }
+        }
+        
+        $(this).addClass("initAlias");
+
+        var parentAlias = $(this).parent();
+        var htmlToolTip = $(this).parent().find(".contentTooltip").html();
+
+        $(this).parent().not(".tooltipstered").each(function () {
+            if ($(this).closest('.header-info').length == 0) {
+                $(this).find(".aliasname").tooltipster({
+                    content: htmlToolTip,
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    interactiveTolerance: 50
+                });
+            }
+        });
+
+
+        //$(this).parent().not(".tooltipstered").tooltipster({
+        //    content: htmlToolTip,
+        //    contentAsHTML: true,
+        //    interactive: true,
+        //    arrow: true,
+        //    interactiveTolerance: 50
+        //});
+    });
+}

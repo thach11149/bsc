@@ -1,0 +1,449 @@
+﻿function LoadDropDownNhanSu(groupparentnhansuduan, invite, loai, hasFooter) {
+    $(".DropDownCustom").remove();
+    event.stopPropagation();
+    var rootParent = $(`.` + groupparentnhansuduan);
+    var elPhuTrach = rootParent.find(`[name="NguoiPhuTrachIDParent"]`);
+    var elHoTro = rootParent.find(`[name="NguoiHoTroIDParent"]`);
+    if (elPhuTrach.length == 0 && elHoTro.length == 0) {
+        elPhuTrach = rootParent.find(`[name="NguoiPhuTrachIDCongViecCon"]`);
+        elHoTro = rootParent.find(`[name="NguoiHoTroIDCongViecCon"]`);
+        if (elPhuTrach.length == 0 && elHoTro.length == 0) {
+            elPhuTrach = rootParent.find(`[name="NguoiPhuTrachID"]`);
+            elHoTro = rootParent.find(`[name="NguoiHoTroID"]`);
+        }
+    }
+    Loading();
+    var listidnhansu = [];
+    var checkhasModal = elPhuTrach.closest('.modal-dialog').length > 0;
+    if (checkhasModal) {
+        listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+        if (listidnhansu == undefined) {
+            listidnhansu = $(`[name="DanhSachNhanSuDuAnID"]`).val();
+            if (listidnhansu == undefined) {
+                listidnhansu = [];
+            }
+        }
+        if ($("[name='selDuAn']").length == 0) {
+            listidnhansu = [];
+        }
+    }
+    else {
+        listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+        if (listidnhansu == undefined) {
+            listidnhansu = [];
+        }
+    }
+   
+    var listidCurrent = loai == "pt" ? elPhuTrach.attr('data-idselected') : elHoTro.attr('data-idselected');
+    $.ajax({
+        url: '/CongViecDuAn/LoadDropDownNhanSu',
+        cache: false,
+        data: { listidnhansu: listidnhansu, action: invite, listidCurrent: listidCurrent, hasFooter: hasFooter },
+        type: 'POST',
+        success: function (data) {
+            if (loai == "pt") {
+                elPhuTrach.append(data);
+                autoPositionDropdown(elPhuTrach);
+                var $dropdown = $('.DropDownCustom');
+                $(".search-field").on("keyup", function () {
+                    var value = $(this).val().toLowerCase();
+                    searchDropDown(value);
+                });
+                var value = $(".search-field").val().toLowerCase();
+                searchDropDown(value);
+                $dropdown.click(function (event) {
+                    event.stopPropagation();
+                });
+
+                var arrayHotroID = elHoTro != null && elHoTro.attr('data-idselected') != null ? elHoTro.attr('data-idselected').splitSafe(',') : [];
+                if (arrayHotroID.length > 0) {
+                    for (var i = 0; i <= arrayHotroID.length; i++) {
+                        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item[data-iddropdow='" + arrayHotroID[i] + "']").addClass("disableitem");
+                    }
+                }
+                $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").on("click", function (event) {
+                    if ($(this).hasClass("disableitem")) {
+                        return false;
+                    }
+                    else {
+                        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").removeClass("active");
+                        $(this).addClass("active");
+                        var idselect = $(this).attr("data-iddropdow");
+                        LoadAliasNhanVienNew(idselect, $dropdown, $(this), loai);
+                        elPhuTrach.attr('data-idselected', idselect);
+                        if (typeof setIsEditRow == 'function') {
+                            setIsEditRow($dropdown.closest("tr"));
+                        }
+                    }
+                });
+                $(".DropDownCustom-Invite a").on("click", function (event) {
+                    LoadDropDownNhanSu(groupparentnhansuduan, 'invite', loai, false);
+                });
+            }
+            else {
+                elHoTro.append(data);
+                autoPositionDropdown(elHoTro);
+                var $dropdown = $('.DropDownCustom');
+                $(".search-field").on("keyup", function () {
+                    var value = $(this).val().toLowerCase();
+                    searchDropDown(value);
+                });
+                var value = $(".search-field").val().toLowerCase();
+                searchDropDown(value);
+                $dropdown.click(function (event) {
+                    event.stopPropagation();
+                });
+
+                var arrayPhuTrachID = elPhuTrach.attr('data-idselected') != null ? elPhuTrach.attr('data-idselected').splitSafe(',') : [];
+                if (arrayPhuTrachID.length > 0) {
+                    for (var i = 0; i <= arrayPhuTrachID.length; i++) {
+                        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item[data-iddropdow='" + arrayPhuTrachID[i] + "']").addClass("disableitem");
+                    }
+                }
+                $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").on("click", function (event) {
+                    if ($(this).hasClass("disableitem")) {
+                        return false;
+                    }
+                    else {
+                        if ($(this).hasClass("active")) {
+                            $(this).removeClass("active");
+                        }
+                        else {
+                            $(this).addClass("active");
+                        }
+                        var idselect = $('.table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item.active').map(function () {
+                            return $(this).attr("data-iddropdow"); // Lấy ID của từng tr
+                        }).get();
+                        LoadAliasNhanVienNew(idselect, $dropdown, $(this), loai);
+                        elHoTro.attr('data-idselected', idselect);
+                        if (typeof setIsEditRow == 'function') {
+                            setIsEditRow($dropdown.closest("tr"));
+                        }
+                    }
+                });
+
+                $(".DropDownCustom-Invite a").on("click", function (event) {
+                    LoadDropDownNhanSu(groupparentnhansuduan, 'invite', loai, false);
+                });
+            }
+
+            RemoveLoading();
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+    return false;
+}
+function LoadDropDownNhanSuKanBan(groupparentnhansuduan, invite, loai, hasFooter) {
+    $(".DropDownCustom").remove();
+    event.stopPropagation();
+    var rootParent = $(`.` + groupparentnhansuduan);
+    var elPhuTrach = rootParent.find(`[name="NguoiPhuTrachID"]`);
+    var elHoTro = null;
+
+    Loading();
+    var listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+    if (listidnhansu == undefined) {
+        listidnhansu = [];
+    }
+
+    var listidCurrent = loai == "pt" ? elPhuTrach.attr('data-idselected') : elHoTro.attr('data-idselected');
+    $.ajax({
+        url: '/CongViecDuAn/LoadDropDownNhanSu',
+        cache: false,
+        data: { listidnhansu: listidnhansu, action: invite, listidCurrent: listidCurrent, hasFooter: hasFooter },
+        type: 'POST',
+        success: function (data) {
+            if (loai == "pt") {
+                $("body").append(data);
+                autoPositionDropdownKanBan(elPhuTrach);
+                var $dropdown = $('.DropDownCustom');
+                $(".search-field").on("keyup", function () {
+                    var value = $(this).val().toLowerCase();
+                    searchDropDown(value);
+                });
+                var value = $(".search-field").val().toLowerCase();
+                searchDropDown(value);
+                $dropdown.click(function (event) {
+                    event.stopPropagation();
+                });
+
+                var arrayHotroID = elHoTro != null && elHoTro.attr('data-idselected') != null ? elHoTro.attr('data-idselected').splitSafe(',') : [];
+                if (arrayHotroID.length > 0) {
+                    for (var i = 0; i <= arrayHotroID.length; i++) {
+                        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item[data-iddropdow='" + arrayHotroID[i] + "']").addClass("disableitem");
+                    }
+                }
+                $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").on("click", function (event) {
+                    if ($(this).hasClass("disableitem")) {
+                        return false;
+                    }
+                    else {
+                        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").removeClass("active");
+                        $(this).addClass("active");
+                        var idselect = $(this).attr("data-iddropdow");
+                        LoadAliasNhanVienNewKanBan(idselect, elPhuTrach, $(this), loai);
+                        elPhuTrach.attr('data-idselected', idselect);
+                    }
+                    if (elPhuTrach.closest(".kanban-item").attr("data-id") != 'new-task') {
+                        lastFocusedDiv = elPhuTrach.closest(".kanban-item").attr("data-id");
+                        UpdateCongViecDuAn();
+                        lastFocusedDiv = null;
+                        
+                    }
+                });
+                $(".DropDownCustom-Invite a").on("click", function (event) {
+                    LoadDropDownNhanSuKanBan(groupparentnhansuduan, 'invite', loai, false);
+                });
+            }
+          
+
+            RemoveLoading();
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+    return false;
+}
+
+function autoPositionDropdown(containeritem) {
+    var checkhasModal = $(containeritem).closest('.modal-dialog').length > 0;
+    if (checkhasModal) {
+
+        var $modal = $(containeritem).closest('.modal-dialog');
+        var modalOffset = $modal.offset();
+        var leftmodalOffset = modalOffset.left;
+        var topmodalOffset = modalOffset.top;
+        var modalWidth = $modal.outerWidth();
+
+        var $container = $(containeritem);
+        var containerHeight = $container.outerHeight();
+        var containerWidth = $container.outerWidth();
+        var containerOffset = $container.offset();
+        var leftcontainerOffset = containerOffset.left - leftmodalOffset;
+        var topcontainerOffset = containerOffset.top;
+
+        var windowWidth = $(window).width();
+        var windowHeight = $(window).height();
+
+        var $dropdown = $('.DropDownCustom');
+        var dropdownWidth = $dropdown.outerWidth();
+        var dropdownHeight = $dropdown.outerHeight();
+
+        var left = (containerWidth / 2) - (dropdownWidth / 2);
+        if (containerOffset.left + (containerWidth / 2) - leftmodalOffset < (dropdownWidth / 2)) {
+            left = -(containerOffset.left - leftmodalOffset)+10;
+        }
+        if (windowWidth- (containerOffset.left + (containerWidth / 2)) < (dropdownWidth / 2)) {
+            left = (windowWidth - (containerOffset.left + (containerWidth / 2))) - dropdownWidth + (containerWidth / 2)-10;
+        }
+
+        var top = containerHeight+3;
+        // Kiểm tra nếu dropdown tràn phía dưới modal
+        if ((windowHeight - topcontainerOffset) < (dropdownHeight+10)) {
+            top = -dropdownHeight-3;
+        }
+        // Áp dụng vị trí
+        $dropdown.css({
+            left: left,
+            top:top
+        });
+    }
+    else {
+        var $container = $(containeritem);
+        var containerHeight = $container.outerHeight();
+        var containerWidth = $container.outerWidth();
+        var containerOffset = $container.offset();
+        var leftcontainerOffset = containerOffset.left;
+        var topcontainerOffset = containerOffset.top;
+
+        var windowWidth = $(window).width();
+        var windowHeight = $(window).height();
+
+        var $dropdown = $('.DropDownCustom');
+        var dropdownWidth = $dropdown.outerWidth();
+        var dropdownHeight = $dropdown.outerHeight();
+
+        var left = (containerWidth / 2) - (dropdownWidth / 2);
+        if (containerOffset.left + (containerWidth / 2) < (dropdownWidth / 2)) {
+            left = -(containerOffset.left) + 10;
+        }
+        if (windowWidth - (containerOffset.left + (containerWidth / 2)) < (dropdownWidth / 2)) {
+            left = (windowWidth - (containerOffset.left + (containerWidth / 2))) - dropdownWidth + (containerWidth / 2) - 10;
+        }
+
+        var top = containerHeight + 3;
+        // Kiểm tra nếu dropdown tràn phía dưới modal
+        if ((windowHeight - topcontainerOffset) < (dropdownHeight + 10)) {
+            top = -dropdownHeight - 3;
+        }
+        // Áp dụng vị trí
+        $dropdown.css({
+            left: left,
+            top: top
+        });
+    }
+
+}
+function autoPositionDropdownKanBan(containeritem) {
+    var checkhasModal = $(containeritem).closest('.modal-dialog').length > 0;
+    if (checkhasModal) {
+
+        var $modal = $(containeritem).closest('.modal-dialog');
+        var modalOffset = $modal.offset();
+        var leftmodalOffset = modalOffset.left;
+        var topmodalOffset = modalOffset.top;
+        var modalWidth = $modal.outerWidth();
+
+        var $container = $(containeritem);
+        var containerHeight = $container.outerHeight();
+        var containerWidth = $container.outerWidth();
+        var containerOffset = $container.offset();
+        var leftcontainerOffset = containerOffset.left - leftmodalOffset;
+        var topcontainerOffset = containerOffset.top;
+
+        var windowWidth = $(window).width();
+        var windowHeight = $(window).height();
+
+        var $dropdown = $('.DropDownCustom');
+        var dropdownWidth = $dropdown.outerWidth();
+        var dropdownHeight = $dropdown.outerHeight();
+
+        var left = (containerWidth / 2) - (dropdownWidth / 2);
+        if (containerOffset.left + (containerWidth / 2) - leftmodalOffset < (dropdownWidth / 2)) {
+            left = -(containerOffset.left - leftmodalOffset) + 10;
+        }
+        if (windowWidth - (containerOffset.left + (containerWidth / 2)) < (dropdownWidth / 2)) {
+            left = (windowWidth - (containerOffset.left + (containerWidth / 2))) - dropdownWidth + (containerWidth / 2) - 10;
+        }
+      
+        var top = containerHeight + 3;
+        // Kiểm tra nếu dropdown tràn phía dưới modal
+        if ((windowHeight - topcontainerOffset) < (dropdownHeight + 10)) {
+            top = -dropdownHeight - 3;
+        }
+        // Áp dụng vị trí
+        $dropdown.css({
+            left: left,
+            top: top
+        });
+    }
+    else {
+        var $container = $(containeritem);
+        var containerHeight = $container.outerHeight();
+        var containerWidth = $container.outerWidth();
+        var containerOffset = $container.offset();
+        var leftcontainerOffset = containerOffset.left;
+        var topcontainerOffset = containerOffset.top;
+        var $modal = $('#rightColumn');
+        var modalOffset = $modal.offset();
+        var leftmodalOffset = modalOffset.left;
+        
+        var $dropdown = $('.DropDownCustom');
+        var dropdownWidth = $dropdown.outerWidth();
+        var dropdownHeight = $dropdown.outerHeight();
+        var windowWidth = $(window).width();
+
+        var left = leftcontainerOffset + (containerWidth / 2) - (dropdownWidth / 2);
+        if (leftcontainerOffset - leftmodalOffset + (containerWidth / 2) < (dropdownWidth / 2)) {
+            left = (leftmodalOffset) + 10;
+        }
+        if (windowWidth - (leftcontainerOffset + (containerWidth / 2)) < (dropdownWidth / 2)) {
+            left = ((leftcontainerOffset + (containerWidth / 2))) - dropdownWidth + (containerWidth / 2) - 10;
+        }
+        var windowHeight = $(window).height();
+        var top = topcontainerOffset + containerHeight + 3;
+        // Kiểm tra nếu dropdown tràn phía dưới modal
+        if ((windowHeight - topcontainerOffset) < (dropdownHeight + 10)) {
+            top = topcontainerOffset - dropdownHeight - 3;
+        }
+        // Áp dụng vị trí
+        $dropdown.css({
+            left: left,
+            top: top
+        });
+    }
+}
+function searchDropDown(value) {
+    if (value != "") {
+        $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item").filter(function () {
+            $(this).toggleClass("showfilterDropDownCustom", $(this).text().toLowerCase().indexOf(value) > -1);
+            $(this).toggleClass("hidefilterDropDownCustom", $(this).text().toLowerCase().indexOf(value) === -1);
+        });
+    }
+    else {
+        $(".showfilterDropDownCustom,.hidefilterDropDownCustom").removeClass("showfilterDropDownCustom").removeClass("hidefilterDropDownCustom");
+    }
+}
+function LoadAliasNhanVienNew(id, item, tr, loai) {
+    if (loai == 'pt') {
+        var txtHoTroNew = "";
+        var tennhanvien = $(tr).data('nhanvien');
+        var tenchucvu = $(tr).data('chucvu');
+        var tenbophan = $(tr).data('bophan');
+        if (tenchucvu != '' && tenchucvu != undefined) {
+
+            var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+            txtHoTroNew += htmlNew.prop('outerHTML');
+        }
+        else {
+            var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+            txtHoTroNew += htmlNew.prop('outerHTML');
+        }
+        item.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(txtHoTroNew);
+        if (item.closest(".divWrapPhuTrach").find(".namephutrach").length > 0) {
+            item.closest(".divWrapPhuTrach").find(".namephutrach").text(tennhanvien);
+        }
+        initAliasName();
+    }
+    else {
+        var txtHoTroNew = "";
+        if (id.length > 0) {
+            for (var i = 0; i < id.length; i++) {
+                var trGet = $(".table-content-drodown .table-content-drodown-divbody .table-content-drodown-divbody-item[data-iddropdow='" + id[i] + "']");
+                var tennhanvien = $(trGet).data('nhanvien');
+                var tenchucvu = $(trGet).data('chucvu');
+                var tenbophan = $(trGet).data('bophan');
+
+
+                if (tenchucvu != '' && tenchucvu != undefined) {
+                    var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id[i]).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+                    txtHoTroNew += htmlNew.prop('outerHTML');
+                }
+                else {
+                    var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id[i]).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+                    txtHoTroNew += htmlNew.prop('outerHTML');
+                }
+            }
+        }
+        else {
+            txtHoTroNew = `<p class="spantennguoihotro nouser"><i class="fa fa-users" aria-hidden="true"></i></p>`;
+        }
+        item.closest(".divWrapHoTro").find(".divNhanSuHoTro").html(txtHoTroNew);
+        initAliasName();
+    }
+    return false;
+}
+function LoadAliasNhanVienNewKanBan(id, item, tr, loai) {
+    var txtHoTroNew = "";
+    var tennhanvien = $(tr).data('nhanvien');
+    var tenchucvu = $(tr).data('chucvu');
+    var tenbophan = $(tr).data('bophan');
+    if (tenchucvu != '' && tenchucvu != undefined) {
+
+        var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+        txtHoTroNew += htmlNew.prop('outerHTML');
+    }
+    else {
+        var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', tennhanvien).replaceAll('{tenchucvu}', tenchucvu).replaceAll('{tenbophan}', tenbophan));
+        txtHoTroNew += htmlNew.prop('outerHTML');
+    }
+    item.find(".spantennguoihotro").replaceWith(txtHoTroNew);
+    if (item.find(".namephutrach").length > 0) {
+        item.find(".namephutrach").text(tennhanvien);
+    }
+    initAliasName();
+    return false;
+}

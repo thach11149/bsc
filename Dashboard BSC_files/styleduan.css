@@ -1,0 +1,888 @@
+﻿
+.countphutrach, .countduocgiao, .countdagiao, .counthotro {
+    color: red;
+}
+
+.chitietphuongdien tbody td, .tabletitrong tbody td {
+    padding: 7px !important;
+    font-size: 12px !important;
+}
+
+.chitietphuongdien tbody tr:nth-child(odd) td {
+    background: #e9edf2;
+    color: #454f5b !important;
+    border-left: unset;
+    border-right: unset;
+    border-bottom: 1px solid rgb(233, 237, 242) !important;
+}
+
+.chitietphuongdien tbody tr:nth-child(even) td {
+    background: #f9fafb;
+    color: #454f5b !important;
+    border-left: unset;
+    border-right: unset;
+    border-bottom: 1px solid rgb(233, 237, 242) !important;
+}
+
+.chitietphuongdien .badgetitrong {
+    font-size: 12px;
+    width: 55px;
+    text-align: center;
+    display: block;
+}
+
+.chitietphuongdien .progress {
+    height: 16px;
+    border-radius: 0;
+}
+
+    .chitietphuongdien .progress .progress-bar {
+        line-height: 16px;
+        background: unset;
+        background: #1f4383;
+    }
+
+        .chitietphuongdien .progress .progress-bar p {
+            font-size: 10px;
+        }
+
+.spanphuongdien {
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+
+.chitietphuongdien tbody tr td:hover, .activemuctieu {
+    background: #d1e2fc !important;
+}
+
+#boxContent table tr th, #boxContent table tr td {
+    border-right: none !important;
+    border-left: none !important;
+}
+
+#boxContent table tbody tr:nth-child(odd) td {
+    background: #f4f6f8;
+    color: #454f5b !important;
+}
+
+#boxContent table tbody tr:nth-child(even) td {
+    background: #ffffff;
+    color: #454f5b !important;
+}
+
+table.tableactionplan > thead > tr > th {
+    background: #fff;
+    border: none !important;
+}
+
+.tableactionplan th, .tableactionplan td {
+    border: none !important;
+}
+
+#boxContent table tr td, .tableactionplan > thead > tr > th {
+    font-size: 12px !important;
+    padding: 8px !important;
+}
+
+.tableactionplan .progress {
+    height: 16px;
+    border-radius: 0;
+}
+
+    .tableactionplan .progress .progress-bar:not(.progress-bar-info) {
+        line-height: 16px;
+        background: unset;
+        background: #3175b0;
+        border: none;
+    }
+
+        .tableactionplan .progress .progress-bar p {
+            font-size: 10px;
+            display: none;
+        }
+
+    .tableactionplan .progress .progress-text {
+        font-size: 10px;
+        position: absolute;
+        top: 1px;
+        right: -45px;
+        width: 40px;
+    }
+
+.nav-tabs {
+    border-bottom: 3px solid #ddd !important;
+}
+
+    .nav-tabs > li {
+        margin-bottom: -3px !important;
+    }
+
+        .nav-tabs > li > a {
+            color: #000 !important;
+            background: #fff !important;
+            border: none !important;
+            border-bottom: 3px solid #ddd !important;
+            color: #7D8398 !important;
+            font-weight: 600;
+        }
+
+            .nav-tabs > li > a:hover, .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+                border-bottom: 3px solid #265a88 !important;
+                background: none !important;
+                color: #1A659E !important;
+            }
+
+/*.modal-lg {
+    max-width: 1170px;
+}*/
+
+
+
+.context-menu-item i {
+    margin-right: 5px;
+}
+
+.tablecongviec thead tr:first-child td, .timeline .box-weekend span.month {
+    background: #fff !important;
+    color: #454f5b !important;
+    border-color: #ddd !important;
+}
+
+/*.weekend {
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+    height: 22px;
+}
+
+    .weekend span {
+        width: 100%;
+        text-align: center;
+        font-size: 10px;
+        height: 100%;
+        line-height: 22px;
+        border: 1px solid #ddd;
+        border-right: none;
+        border-top: none;
+        color: #454f5b;
+    }*/
+
+.parent .line-center {
+    height: 3px !important;
+}
+
+table.treetable tbody tr.branch td.TDTanSuat > * {
+    display: none !important;
+}
+
+.tablecongviec tr {
+    display: table-row;
+}
+/*
+.table-condensed tr {
+    display: flex;
+}
+
+.datepicker .table-condensed > thead > tr > th {
+    border: none !important;
+    background-color: #fff !important;
+    color: #000 !important;
+}
+
+.datepicker .table-condensed > thead > tr > th, .datepicker .table-condensed > tbody > tr > th, .datepicker .table-condensed > tfoot > tr > th, .datepicker .table-condensed > thead > tr > td, .datepicker .table-condensed > tbody > tr > td, .datepicker .table-condensed > tfoot > tr > td {
+    border: none !important;
+    font-size: 9pt !important;
+}
+
+.datepicker .table-condensed td.disabled, .datepicker .table-condensed td.disabled:hover {
+    background-color: #e9edf2;
+}*/
+
+
+@@keyframes rotateLeft {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-180deg);
+    }
+}
+
+@@keyframes rotateRight {
+    from {
+        transform: rotate(-180deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+#leftColumn {
+    transition: all 0.3s ease;
+    height: 100%;
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+
+#rightColumn {
+    transition: all 0.3s ease;
+    height: 100%;
+    padding-left: 0px !important;
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+
+    #rightColumn:has(#kanban-board) {
+    }
+
+
+
+.stat-box {
+    background-color: white;
+    padding: 15px;
+    border-radius: 10px;
+    width: 100%;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border-top: 4px solid #1A659E;
+}
+
+    .stat-box h5 {
+        font-size: 1rem;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .stat-box h3 {
+        font-size: 1.5rem;
+        margin-top: 0;
+    }
+
+.hasactionplan {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.divhoanthanh {
+    border-color: #A7D6AC;
+}
+
+.divchuabatdau {
+    border-color: #F2E5A9;
+}
+
+.divdangtrienkhai {
+    border-color: #96BCD9;
+}
+
+.divtretiendo {
+    border-color: #f7665f;
+}
+
+.divngansach {
+    border-color: #D096D9;
+}
+
+.box-viec-trong-ngay .box-viec-trong-ngay-body table, .table-kanban {
+    margin: 0;
+    border: none;
+}
+
+    .box-viec-trong-ngay .box-viec-trong-ngay-body table.table > thead > tr > th, .table-kanban > thead > tr > th {
+        height: 33px;
+        background-color: #e9edf2 !important;
+        color: #454f5b !important;
+        border-top: 1px solid #fff !important;
+        border-bottom: 1px solid #fff !important;
+        border-left: unset !important;
+        border-right: unset !important;
+        font-size: 11px;
+        padding: 0 10px;
+        vertical-align: middle;
+    }
+
+    .box-viec-trong-ngay .box-viec-trong-ngay-body table.table > tbody > tr > td, .table-kanban > tbody > tr > td {
+        height: 33px;
+        background-color: #f9fafb !important;
+        color: #454f5b !important;
+        border-top: 1px solid #fff !important;
+        border-bottom: 1px solid #fff !important;
+        border-left: unset !important;
+        border-right: unset !important;
+        font-size: 11px;
+        padding: 0 10px;
+    }
+
+        .box-viec-trong-ngay .box-viec-trong-ngay-body table.table > tbody > tr > td a, .table-kanban > tbody > tr > td a {
+            color: #454f5b !important;
+            font-weight: normal;
+        }
+
+.jstree-control .jstree-dropdown .jstree-options {
+    max-height: 200px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    /*line-height: 34px !important;
+    height: 34px !important;*/
+}
+
+.tooltipsubtask, .tooltipsubtasknotshow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    text-shadow: none;
+    box-shadow: none;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+.breadcrumb > li:after {
+    font: normal normal normal 14px / 1 FontAwesome;
+    content: "\f105";
+    margin-left: 5px;
+    color: #6d6e6f;
+}
+
+.breadcrumb > li + li:before {
+    content: none !important;
+}
+
+.divWrapHoTroChiTiet {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    justify-content: center;
+}
+
+.assign-box {
+    visibility: hidden;
+    height: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.panel-body .select2-results__options,
+.divWrapPhuTrach .select2-results__options,
+.divWrapHoTro .select2-results__options {
+    border-radius: unset !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none !important;
+    background: unset !important;
+    box-shadow: unset !important;
+}
+/*#region select phụ trách, hỗ trợ*/
+
+.divWrapPhuTrach, .divWrapHoTro, .divWrapNguoiTao {
+    position: relative;
+}
+
+    .divWrapPhuTrach .select2-container--default .select2-search--dropdown .select2-search__field,
+    .divWrapHoTro .select2-container--default .select2-search--dropdown .select2-search__field, .select2-results__option .row div {
+        line-height: normal;
+    }
+
+    .divWrapPhuTrach .select2-container.select2-container--open .select2-dropdown--below,
+    .divWrapHoTro .select2-container.select2-container--open .select2-dropdown--below {
+        min-width: 450px !important;
+        background: #fff;
+        padding: 5px;
+        border-radius: 0 !important;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    }
+
+    .divWrapPhuTrach .select2-container.select2-container--default .select2-results > .select2-results__options .select2-results__group,
+    .divWrapHoTro .select2-container.select2-container--default .select2-results > .select2-results__options .select2-results__group {
+        background: #1a659e !important;
+        color: #fff !important;
+    }
+
+    .divWrapPhuTrach .select2-container.select2-container--open + .select2-container.select2-container--open,
+    .divWrapPhuTrach .select2-container.select2-container--open,
+    .divWrapPhuTrach .select2-container.select2-container--open .select2-dropdown--above,
+    .divWrapHoTro .select2-container.select2-container--open + .select2-container.select2-container--open,
+    .divWrapHoTro .select2-container.select2-container--open,
+    .divWrapHoTro .select2-container.select2-container--open .select2-dropdown--above {
+        /*    left: unset !important;
+    right: 0 !important;*/
+        min-width: 450px !important;
+        top: 34px !important;
+    }
+
+        .divWrapPhuTrach .select2-container.select2-container--open .select2-dropdown--below,
+        .divWrapPhuTrach .select2-container.select2-container--open + .select2-container.select2-container--open,
+        .divWrapHoTro .select2-container.select2-container--open .select2-dropdown--below,
+        .divWrapHoTro .select2-container.select2-container--open + .select2-container.select2-container--open {
+            min-width: 120px !important;
+            left: 2px !important;
+            right: unset !important;
+        }
+
+        .divWrapPhuTrach .select2-container.select2-container--open .select2-dropdown--below,
+        .divWrapPhuTrach.select2-container.select2-container--open .select2-dropdown--above,
+        .divWrapPhuTrach .select2-container.select2-container--open + .select2-container.select2-container--open,
+        .divWrapHoTro .select2-container.select2-container--open .select2-dropdown--below,
+        .divWrapHoTro.select2-container.select2-container--open .select2-dropdown--above,
+        .divWrapHoTro .select2-container.select2-container--open + .select2-container.select2-container--open {
+            min-width: 450px !important;
+            left: unset !important;
+            right: 0 !important;
+        }
+
+
+    .divWrapPhuTrach .select2-container.select2-container--default .select2-results > .select2-results__options,
+    .divWrapHoTro .select2-container.select2-container--default .select2-results > .select2-results__options {
+        padding: 0 0 5px;
+        border-radius: 0;
+        box-shadow: none;
+        background: #fff;
+    }
+
+    .divWrapPhuTrach .select2-container.select2-container--open .select2-results__option,
+    .divWrapHoTro .select2-container.select2-container--open .select2-results__option {
+        padding: 0 4px;
+        border-radius: 0;
+    }
+
+    .divWrapPhuTrach .select2-results__option .row div,
+    .divWrapHoTro .select2-results__option .row div {
+        font-size: 12px !important;
+        padding: 0 3px !important;
+    }
+
+    .divWrapPhuTrach .select2-results__option:first-child .row,
+    .divWrapHoTro .select2-results__option:first-child .row {
+        border: none;
+    }
+
+    .divWrapPhuTrach .select2-container--default .select2-results__option[aria-selected=true],
+    .divWrapHoTro .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #e8f0fc !important;
+        color: #161c24 !important;
+    }
+
+    .divWrapPhuTrach .select2-container--default .select2-results__option--highlighted[aria-selected],
+    .divWrapPhuTrach .select2-container--default .select2-results__option--highlighted[aria-selected] .text-danger,
+    .divWrapHoTro .select2-container--default .select2-results__option--highlighted[aria-selected],
+    .divWrapHoTro .select2-container--default .select2-results__option--highlighted[aria-selected] .text-danger {
+        background-color: #fcf5c7 !important;
+        color: #161c24 !important;
+    }
+
+    .divWrapPhuTrach .select2-container.select2-container--open .select2-results__option .select2-results__option,
+    .divWrapHoTro .select2-container.select2-container--open .select2-results__option .select2-results__option {
+        padding: 5px 4px !important;
+    }
+
+        .divWrapPhuTrach .select2-container.select2-container--open .select2-results__option .select2-results__option[aria-disabled="true"] div,
+        .divWrapHoTro .select2-container.select2-container--open .select2-results__option .select2-results__option[aria-disabled="true"] div {
+            text-decoration: line-through;
+        }
+
+    .divWrapHoTro[data-position="right"] .DropDownCustom {
+        left: unset !important;
+        right: 0 !important;
+    }
+/*#endregion select phụ trách, hỗ trợ*/
+.kanban-item .label, .TDUuTien .label, .TDIcon .label {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    /*margin-bottom: 5px;*/
+    color: #fff;
+    border: none;
+}
+
+.kanban-item li a.label, .TDUuTien li a.label, .TDIcon li a.label {
+    margin: 5px 10px;
+}
+
+.label.high {
+    background-color: #ff4d4f !important;
+    color: #fff !important;
+}
+
+.label.medium {
+    background-color: #faad14 !important;
+    color: #fff !important;
+}
+
+.label.low {
+    background-color: #52c41a !important;
+    color: #fff !important;
+}
+/*.selecttruncated {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}*/
+
+
+.wrapSelect2 .select2-container {
+    /*    height: 34px;
+    padding: 6px 12px;*/
+    /* font-size: 14px;
+    line-height: 34px;*/
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+    #frmTask .wrapSelect2 .select2-container.select2-container--default .select2-selection--single, .wrapSelect2 .select2-container.select2-container--default .select2-selection--multiple {
+        height: 32px !important;
+        border-radius: 4px;
+    }
+
+    .wrapSelect2 .select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 30px !important;
+        height: 32px !important;
+    }
+
+    .wrapSelect2 .select2-container.select2-container--open .select2-results__option {
+        padding: 8px !important;
+    }
+
+
+/*#region modal chi tiết*/
+.WrapThoiGian {
+    display: flex;
+    width: 100%;
+    gap: 5px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+#myModalChiTietDuAn .modal-lg {
+    max-width: 750px;
+    position: fixed;
+    right: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+
+#myModalChiTietDuAn .modal-content {
+    height: 100%;
+    border-radius: 0;
+}
+
+#myModalChiTietDuAn .modal-header {
+    background: #fff !important;
+    border-bottom: 1px solid #e8eaef;
+    padding-bottom: 2px;
+}
+
+    #myModalChiTietDuAn .modal-header .close span {
+        color: #7D8398 !important;
+        font-weight: normal;
+        font-size: 18pt;
+    }
+
+#myModalChiTietDuAn .modal-body {
+    padding-top: 10px;
+    overflow: auto;
+}
+
+#myModalChiTietDuAn .tab-content {
+    padding: 0;
+    overflow: unset;
+}
+
+#myModalChiTietDuAn .titleChiTietCongViec {
+    font-weight: 500;
+    color: #6d6e6f !important;
+    margin: 0;
+}
+
+.titleChiTiet {
+    font-size: 13pt !important;
+    line-height: 24px !important;
+    font-family: inherit !important;
+    font-weight: 500 !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #282e3e !important;
+    padding: 0 !important;
+    margin-bottom: 10px !important;
+}
+
+.inputChiTietCongViec {
+    cursor: pointer;
+    font-family: inherit !important;
+    font-weight: 500 !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #282e3e !important;
+    padding: 0 !important;
+    margin-bottom: 0px !important;
+}
+
+    .inputChiTietCongViec:hover {
+        background-color: #f9f8f8 !important;
+        padding: 0 !important;
+    }
+
+    .inputChiTietCongViec:focus {
+        background-color: #f9f8f8;
+        padding: 0 !important;
+    }
+
+#myModalChiTietDuAn .divparentcongviec {
+    background-color: #fff;
+    margin: 0;
+}
+
+#myModalChiTietDuAn .breadcrumb {
+    background-color: #fff;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+    #myModalChiTietDuAn .breadcrumb > li {
+        font-size: 12px;
+    }
+
+        #myModalChiTietDuAn .breadcrumb > li a {
+            font-weight: normal !important;
+        }
+
+#myModalChiTietDuAn .divInfo {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+#myModalChiTietDuAn .WrapThoiGian {
+    margin: 0;
+}
+
+#myModalChiTietDuAn .donut-progress, .kanban-item .donut-progress {
+    --progress: 15; /* Set the progress percentage here */
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: conic-gradient( #4caf50 calc(var(--progress) * 1%), /* Progress color */
+    #ddd 0 /* Background color */
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+    /* Inner white circle to create the donut effect */
+    #myModalChiTietDuAn .donut-progress::before, .kanban-item .donut-progress::before {
+        content: '';
+        position: absolute;
+        width: 70%;
+        height: 70%;
+        background-color: #fff;
+        border-radius: 50%;
+    }
+
+    /* Inner text showing the percentage */
+    #myModalChiTietDuAn .donut-progress::after, .kanban-item .donut-progress::after {
+        content: var(--progress) '%';
+        font-size: 24px;
+        font-weight: bold;
+        color: #4caf50;
+        position: absolute;
+    }
+
+.wrapdonut {
+    margin: 0 auto !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    gap: 5px;
+    align-items: center;
+}
+
+    .wrapdonut p {
+        margin: 0;
+        color: #282e3e;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+#myModalChiTietDuAn .divInfoTienDo {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+
+#myModalChiTietDuAn .wrapSelect2 .select2-container {
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: unset;
+    border-radius: 4px;
+}
+
+#frmTask .wrapSelect2 .select2-container.select2-container--default .select2-selection--single, .wrapSelect2 .select2-container.select2-container--default .select2-selection--multiple {
+    height: unset !important;
+    border-radius: 4px;
+}
+
+.wrapSelect2 .select2-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: unset !important;
+    height: unset !important;
+    font-weight: 600;
+    color: #282e3e !important;
+}
+
+.wrapSelect2 .select2-container.select2-container--open .select2-results__option {
+    padding: 8px !important;
+}
+
+#myModalChiTietDuAn .content {
+    color: #282e3e !important;
+}
+
+[name="NoiDungChiTiet"]::before {
+    opacity: 1 !important;
+    color: #999 !important;
+    font-style: italic !important;
+    font-weight: normal !important;
+}
+
+#myModalChiTietDuAn .alert.alert-info {
+    padding: 10px;
+}
+
+    #myModalChiTietDuAn .alert.alert-info h3 {
+        margin: 0 0 10px 0;
+    }
+
+#myModalChiTietDuAn .datepicker .table-condensed > thead > tr > th {
+    border: none !important;
+    background-color: #fff !important;
+    color: #000 !important;
+}
+
+#myModalChiTietDuAn .datepicker .table-condensed > thead > tr > th,
+#myModalChiTietDuAn .datepicker .table-condensed > tbody > tr > th,
+#myModalChiTietDuAn .datepicker .table-condensed > tfoot > tr > th,
+#myModalChiTietDuAn .datepicker .table-condensed > thead > tr > td,
+#myModalChiTietDuAn .datepicker .table-condensed > tbody > tr > td,
+#myModalChiTietDuAn .datepicker .table-condensed > tfoot > tr > td {
+    border: none !important;
+    font-size: 9pt !important;
+}
+
+#myModalChiTietDuAn .datepicker .table-condensed td.disabled,
+#myModalChiTietDuAn .datepicker .table-condensed td.disabled:hover {
+    background-color: #e9edf2;
+}
+
+/*#endregion modal chi tiết*/
+/*#region select 2 chung*/
+.select2customcontainer .select2-selection__rendered {
+    padding: 0 !important;
+    font-weight: 500 !important;
+}
+
+.select2custom {
+    min-width: 120px !important;
+    left: 2px !important;
+    right: unset !important;
+    background: #fff;
+    padding: 5px;
+    border-radius: 0 !important;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+}
+
+    .select2custom .select2-container.select2-container--open .select2-dropdown--below,
+    .select2custom .select2-container.select2-container--open .select2-dropdown--above,
+    .select2custom .select2-container.select2-container--open + .select2-container.select2-container--open {
+        min-width: 450px !important;
+        left: unset !important;
+        right: 0 !important;
+        background: #fff;
+        padding: 5px;
+        border-radius: 0 !important;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    }
+
+
+    .select2custom .select2-results__options {
+        padding: 0 0 5px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+    }
+
+    .select2custom .select2-container.select2-container--open .select2-results__option {
+        padding: 0 4px;
+        border-radius: 0;
+    }
+
+    .select2custom .select2-results__option .row div {
+        font-size: 12px !important;
+        padding: 0 3px !important;
+    }
+
+    .select2custom .select2-results__option:first-child .row {
+        border: none;
+    }
+
+    .select2custom .select2-container.select2-container--open .select2-results__option .select2-results__option {
+        padding: 5px 4px !important;
+    }
+
+.formChiTieu .select2customcontainer {
+    border: none !important;
+    box-shadow: none !important;
+    text-align: center;
+}
+
+.formChiTieu .select2-container {
+    width: 110px;
+    min-width: unset;
+}
+/*#endregion*/
+.nouser {
+    font-size: 12px;
+    font-style: italic;
+    cursor: pointer;
+    margin: 0;
+    height: 25px;
+    line-height: 25px;
+    color: #6d6e6f !important;
+    width: 25px;
+    border-radius: 100%;
+    border: 1px dashed #959191;
+    text-align: center;
+}
+
+.dropdown-menu.dropdown-menu-left {
+    right: 100%; /* Đẩy dropdown sang bên trái */
+    left: auto;
+}
+
+.formChiTieu {
+    position: absolute;
+    left: 0;
+    z-index: 1;
+    top: 25px;
+    padding: 5px;
+    background: #fff;
+    border-radius: 6px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.24) 3px 3px 8px 3px;
+    box-shadow: rgba(0, 0, 0, 0.24) 3px 3px 8px 3px;
+}

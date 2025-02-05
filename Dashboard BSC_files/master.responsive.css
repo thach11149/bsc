@@ -1,0 +1,659 @@
+﻿
+
+.div-responsive {
+    width: 100%;
+    overflow: auto;
+}
+
+.divchonchienluoc .buoc1icontips {
+    max-width: 100%;
+    cursor: pointer;
+    position: absolute;
+    right: -30px;
+    top: 10px;
+}
+
+.buoc1icontips {
+    max-width: 100%;
+    cursor: pointer;
+    position: absolute;
+    right: 50px;
+    top: -6px;
+}
+/*`sm` applies to x-small devices (portrait phones, less than 576px)*/
+@media (max-width: 575.98px) {
+}
+
+/*`md` applies to small devices (landscape phones, less than 768px)*/
+@media (max-width: 768.98px) {
+
+    .clear {
+        clear: both;
+    }
+
+    /*BƯỚC 1*/
+    #testtabe {
+        margin-bottom: 30px !important;
+    }
+
+        #testtabe > .row {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+            #testtabe > .row > .row {
+                display: block !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+
+            #testtabe > .row div[class^="col-"] {
+                margin-bottom: 30px !important;
+                margin-top: 0 !important;
+            }
+
+                #testtabe > .row div[class^="col-"] .panel {
+                    margin-bottom: 0 !important;
+                }
+
+    /*BƯỚC 2*/
+    #divBuoc2SWOT > .row {
+        display: block !important;
+        margin: 0 -15px !important;
+    }
+
+        #divBuoc2SWOT > .row .panel {
+            margin-bottom: 30px !important;
+        }
+
+    .divgtkh .rowgtcl {
+        display: grid !important;
+        /*grid-template-columns: repeat(2,1fr);*/
+        grid-gap: 5px;
+    }
+
+    .divgtkh .parentgtkh {
+        width: 100% !important;
+        display: block;
+    }
+
+    .divgtcl .rowgtcl {
+        display: grid !important;
+        grid-template-columns: repeat(2,1fr);
+        grid-gap: 5px;
+    }
+
+    .divgtcl .parentgtcl {
+        width: 100% !important;
+        display: block;
+        min-height: 50px;
+    }
+
+    .divnguyentac table {
+    }
+
+        .divnguyentac table thead {
+            font-size: 11pt !important;
+        }
+
+            .divnguyentac table thead th {
+                white-space: normal !important;
+            }
+
+                .divnguyentac table thead th:first-child {
+                    width: 105px !important;
+                }
+
+        .divnguyentac table tbody td {
+            font-size: 11pt !important;
+            padding: 2px !important;
+        }
+
+            .divnguyentac table tbody td div.parentAll:first-child {
+                margin-top: 0;
+            }
+
+            .divnguyentac table tbody td a[data-classname="parentgtcl"] {
+                margin: 0 !important;
+            }
+
+    /*BƯỚC 3*/
+    .chienluoc > .col-md-12 {
+        margin: 0 auto 30px !important;
+    }
+
+    /*BƯỚC 4*/
+
+    /*BƯỚC 5*/
+    .boxTableQuyTrinh {
+    }
+
+        .boxTableQuyTrinh table tr td {
+            padding: 3px !important;
+        }
+
+            .boxTableQuyTrinh table tr td[class^="title"] {
+                font-size: 15pt;
+                width: 100px !important;
+                min-width: 100px !important;
+            }
+
+            .boxTableQuyTrinh table tr td .btnaddbando {
+                right: 2px;
+                top: 0px;
+            }
+
+
+    /*BƯỚC 6*/
+    .tablebsc {
+    }
+
+        .tablebsc td.fixcolumn1 {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+            left: 0;
+            font-size: 12pt !important;
+            padding: 2px !important;
+        }
+
+        .tablebsc td.fixcolumn2 {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+            left: 100px;
+            font-size: 11pt !important;
+            padding: 2px !important;
+        }
+
+        .tablebsc td.fixcolumn3 {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+            left: 200px;
+            font-size: 10pt;
+            padding: 2px !important;
+        }
+
+        .tablebsc td .parentmuctieu {
+            min-width: 100% !important;
+        }
+
+        .tablebsc thead td {
+            font-size: 10pt !important;
+            padding: 3px !important;
+        }
+
+        .tablebsc td.fixcolumn2 textarea {
+            font-size: 11pt !important;
+        }
+
+        .tablebsc td.fixcolumn3 textarea {
+            font-size: 10pt !important;
+        }
+
+    /*BƯỚC 11*/
+    .tablebaocaokpis {
+    }
+
+
+
+    #divHuongDanSuDung {
+    }
+
+        #divHuongDanSuDung .divtreebophan {
+            position: relative !important;
+            margin-bottom: 15px;
+        }
+
+            #divHuongDanSuDung .divtreebophan .divcontentTree {
+                max-height: 300px !important;
+            }
+
+        #divHuongDanSuDung .noidunghuongdan {
+            max-height: unset !important;
+        }
+
+    .boxStaticDashBoard {
+        display: block !important;
+        padding: 7px 10px !important;
+    }
+
+        .boxStaticDashBoard * {
+            font-size: 13pt !important;
+        }
+
+    #boxcontentdashboard .row {
+        display: grid !important;
+        grid-template-columns: repeat(2,1fr);
+        grid-gap: 10px;
+        margin: 0;
+    }
+
+        #boxcontentdashboard .row::before,
+        #boxcontentdashboard .row::after {
+            display: none;
+        }
+
+        #boxcontentdashboard .row .contentdashboard {
+            margin: 0;
+        }
+}
+
+/*`lg` applies to medium devices (tablets, less than 992px)*/
+@media (max-width: 991.98px) {
+    .box-line-option {
+        bottom: 31px !important;
+    }
+
+    .groupinfo {
+        background: #378dc4;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 4px 15px;
+        line-height: 100%;
+        border: 1px solid #ccc;
+        display: flex;
+        justify-content: flex-start;
+        float: right;
+        z-index: 99;
+        align-items: center;
+        border: none;
+        border-radius: 0;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 2px rgba(0, 0, 0, 0.23);
+        font-weight: 400;
+    }
+
+        .groupinfo p {
+            color: white !important;
+        }
+
+    .divSaveExp {
+        position: fixed;
+        bottom: 3px;
+        right: 5px;
+        z-index: 100;
+    }
+
+    .card-title a, .panel-title a {
+        margin-top: 0;
+    }
+
+        .panel-title a.tourguide {
+            margin-top: 0;
+            right: 75px;
+        }
+
+    .btn {
+        padding: 2px 8px;
+    }
+
+    .container-fluid {
+        /*padding-top: 100px;
+		padding-bottom: 50px;*/
+        padding: 80px 0 0 !important;
+    }
+
+        .container-fluid > .page-header {
+            display: block !important;
+            z-index: 999 !important;
+            position: fixed !important;
+        }
+
+    .chienluoc .panel-body {
+        padding: 5px;
+    }
+
+    .ulcacbuoc li.justify-content-between .row {
+        margin: 0;
+    }
+
+        .ulcacbuoc li.justify-content-between .row .parent18 {
+            padding: 0;
+        }
+
+            .ulcacbuoc li.justify-content-between .row .parent18 div {
+                display: inline-block;
+                margin-top: 5px;
+            }
+
+    .ulcacbuoc li.justify-content-between {
+        position: relative;
+    }
+
+        .ulcacbuoc li.justify-content-between .badge-danger, .ulcacbuoc li.justify-content-between .badge-success {
+            position: absolute;
+            top: -13px;
+            right: -10px;
+        }
+
+    .iconmenu {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 54px;
+        width: 40px;
+        padding: 10px 15px;
+        z-index: 1;
+    }
+
+        .iconmenu .logo-src {
+            display: none;
+        }
+
+    .page-header .header-left {
+        float: left;
+        width: unset;
+        min-height: 34px;
+        padding-left: 30px;
+    }
+
+        .page-header .header-left h1 {
+            display: block;
+            line-height: 34px;
+            font-size: 11pt;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    .page-header .header-center {
+        /*float: right;
+			width: 100%;*/
+        overflow: hidden;
+        padding-right: 0;
+        padding-left: 0;
+        position: relative;
+        z-index: 5;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 30px;
+    }
+
+    .list-group-item {
+        padding: 10px 5px;
+    }
+
+    .ulcacbuoc li.justify-content-between .badge {
+        margin-left: 5px;
+    }
+
+    .panel-title {
+        display: flex;
+        padding-right: 31px;
+        align-items: center;
+    }
+
+    .page-header .header-right {
+        margin-top: 15px;
+        float: right;
+        width: 100%;
+        text-align: right;
+    }
+
+        .page-header .header-right.fixedRight {
+            margin-top: 0;
+            float: right;
+            width: unset !important;
+        }
+
+            .page-header .header-right.fixedRight .wrapbophan {
+                width: unset !important;
+                float: right;
+            }
+
+    .headerb6 {
+        display: flex;
+        align-items: center;
+    }
+
+        .headerb6 #selectnam {
+            width: unset !important;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .headerb6 .wrapbophan:first-child {
+            width: unset !important;
+            margin-right: 5px;
+        }
+
+        .headerb6.collapse {
+            display: none !important;
+        }
+
+    .headerchitietbaocao {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+    }
+
+        .headerchitietbaocao .wrapbophan {
+            width: 100% !important;
+            margin-right: 0;
+            margin-bottom: 5px;
+        }
+
+        .headerchitietbaocao .divdsbaocao {
+            width: 100% !important;
+        }
+
+            .headerchitietbaocao .divdsbaocao .btn-group {
+                width: 100% !important;
+            }
+
+        .headerchitietbaocao.collapse {
+            display: none !important;
+        }
+
+
+    .btnExport {
+        float: right;
+        margin-left: 4px;
+    }
+
+    .wrapbophan {
+        width: 100% !important;
+        margin-bottom: 5px;
+        text-align: left;
+    }
+
+    .container-fluid > .page-header-button .pull-right .wrapbophan {
+        width: unset !important;
+        margin: 0 0 0 10px;
+    }
+
+    .tablebaocao td {
+        font-size: 13px;
+        width: unset !important;
+        min-width: unset !important;
+    }
+
+        .tablebaocao td input, .tablebaocao td select {
+            min-width: 150px !important;
+            width: 150px !important;
+        }
+
+    .daterangepicker {
+        z-index: 999 !important;
+        right: auto !important;
+        left: 0 !important;
+    }
+
+        .daterangepicker.month-period .table-col {
+            font-size: 1em !important;
+        }
+
+        .daterangepicker .grid-calendar .calendar {
+            width: 185px !important;
+        }
+    /* #selecttime {
+        float: left;
+        width: 84px !important;
+        margin-right: 0 !important;
+    }
+
+        #selectnam + .wrapbophan,
+        #selecttime + .wrapbophan {
+            width: calc(100% - 89px) !important;
+            min-width: unset !important;
+            float: left;
+            margin-left: 5px !important;
+            margin-right: 0 !important;
+        }*/
+    .btnthanhphan, .btnthanhphan .btn, .btnshowbophan {
+        width: 100%;
+    }
+
+    .btnselectnam, .btnwrapbophan {
+        width: 100% !important;
+        margin-top: 5px;
+        margin-left: 0 !important;
+    }
+
+    /*BƯỚC 6*/
+    /*.tablebsc td {
+        position: unset !important;
+    }*/
+    .tablebsc tbody .fixcolumn3, .tablebsc tfoot .fixcolumn3, .tablebsc tbody .fixcolumn2, .tablebsc tfoot .fixcolumn2, .tablebsc tbody .fixcolumn1, .tablebsc tfoot .fixcolumn1 {
+        position: unset !important;
+    }
+
+    .tablebsc thead .fixcolumn3, .tablebsc thead .fixcolumn2, .tablebsc thead .fixcolumn1 {
+        left: unset;
+    }
+    /*BƯỚC 7*/
+    /* .tabletitrong td {
+        position: unset !important;
+    }*/
+    .tabletitrong tbody .fixcolumn1, .tabletitrong tbody .fixcolumn2 {
+        position: unset !important;
+    }
+
+    .tabletitrong thead .fixcolumn2, .tabletitrong thead .fixcolumn1 {
+        left: unset;
+    }
+
+    /*BƯỚC 8*/
+    .split-pane-component .container-fluid {
+        padding: 0 15px !important;
+    }
+
+    .buoc1icontips {
+        height: 26px;
+        right: 40px;
+        top: -3px;
+    }
+}
+
+/*`xl` applies to large devices (desktops, less than 1200px)*/
+@media (max-width: 1199.98px) and (min-width: 992px) {
+
+    .page-header-response {
+        display: block !important;
+        z-index: 999 !important;
+        position: fixed !important;
+    }
+
+        .page-header-response .iconmenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 54px;
+            width: 55px;
+            padding: 10px 15px;
+            z-index: 1;
+        }
+
+            .page-header-response .iconmenu .logo-src {
+                display: none;
+            }
+
+        .page-header-response .header-left {
+            float: left;
+            width: unset;
+            min-height: 34px;
+            width: 30%;
+        }
+
+            .page-header-response .header-left h1 {
+                display: block;
+                line-height: 34px;
+                font-size: 11pt;
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+        .page-header-response .header-center {
+            float: left;
+            width: 40%;
+            overflow: hidden;
+            padding-right: 10px;
+            padding-left: 10px;
+            position: relative;
+            z-index: 5;
+            min-height: 34px;
+        }
+
+        .page-header-response .header-right {
+            margin-top: 15px;
+            float: right;
+            width: unset;
+        }
+
+        .page-header-response #btnCollapseRight {
+            display: block !important;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+            .page-header-response #btnCollapseRight:not(.collapsed) .glyphicon-chevron-down {
+                display: none;
+            }
+
+            .page-header-response #btnCollapseRight.collapsed .glyphicon-chevron-up {
+                display: none;
+            }
+
+        .page-header-response .page-header .header-right {
+            margin-top: 15px;
+            float: right;
+            width: 100%;
+        }
+}
+
+/*`xxl` applies to x-large devices (large desktops, less than 1400px)*/
+@media (max-width: 1399.98px) {
+}
+
+@media (min-width: 992px) {
+    .page-header:not(.page-header-response) .header-right {
+        display: block;
+        height: unset !important;
+    }
+
+    .col-md-5-5 {
+        width: calc(50% - 50px);
+    }
+
+    .col-md-0-5 {
+        width: 100px;
+        padding: 0;
+        align-self: center;
+    }
+}
+
+@media (min-width: 1200px) {
+    .page-header.page-header-response .header-right {
+        display: block;
+        height: unset !important;
+    }
+}

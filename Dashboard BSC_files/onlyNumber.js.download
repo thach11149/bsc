@@ -1,0 +1,222 @@
+﻿
+/*Replace All*/
+String.prototype.replaceAll = function (n, t) {
+    if (this == null || this == undefined) return '';
+    for (var i = this, r = i.indexOf(n); r != -1;) i = i.replace(n, t),
+        r = i.indexOf(n);
+    return i.toString()
+};
+
+function reverseString(x) {
+    if (x != null && x.length > 0)
+        return x.split('').reverse().join('');
+    return '';
+}
+function addComma(x) {
+    if (x == null || x.length == 0 || x === '-') return '0';
+    if (x.indexOf(',') > -1) {
+        x = removeComma(x);
+    }
+    var parts = x.toString().split(".");
+    if (parts[0] === '-0') {
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else {
+        if (!$.isNumeric(parts[0])) {
+            parts[0] = '0';
+        }
+        parts[0] = parseFloat(parts[0]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    return parts.join(".");
+}
+function removeComma(x) {
+    if (x == null || x.length == 0) {
+        return x;
+    } else {
+        return (x + ',').replaceAll(',', '');
+    }
+}
+
+(function ($) {
+
+    $.fn.destroyNumber = function () {
+        this.removeClass('input-onlynumber');
+        this.unbind('keydown');
+        this.unbind('keyup');
+        this.unbind('keypress');
+        this.unbind('focusout');
+        this.unbind('change');
+    }
+
+    $.fn.onlyNumber = function (options) {
+
+        var ctrlDown = false,
+            ctrlKey = 17,
+            cmdKey = 91,
+            vKey = 86,
+            cKey = 67,
+            aKey = 65;
+
+        var settings = $.extend({
+            digits: 2,
+            allowDecimalPadding: true,
+            isPercent: false
+        }, options);
+
+        function removeDigit(x) {
+            let newValue = removeComma(x.replace(/[^0-9\.-]/g, ''));
+            if (newValue.indexOf('.') > -1) {
+                let arrayValue = [];
+                let hasDigit = false;
+                for (i = 0; i <= newValue.length - 1; i++) {
+                    if (newValue[i] === '.') {
+                        if (!hasDigit) {
+                            arrayValue.push('.');
+                            hasDigit = true;
+                        }
+                    } else {
+                        arrayValue.push(newValue[i]);
+                    }
+                }
+                let digitValue = arrayValue.join('').split('.');
+                if ($.isNumeric(settings.digits)) {
+                    if (parseFloat(settings.digits) > 0) {
+                        newValue = digitValue[0] + '.' + digitValue[1].substring(0, settings.digits);
+                    } else {
+                        newValue = digitValue[0];
+                    }
+                } else {
+                    newValue = digitValue[0];
+                }
+            }
+            return newValue;
+        }
+
+        function checkValueChanged(el) {
+            setInterval(function () {
+                if ($(el).val() != $(el).attr('data-value')) {
+                    $(el).trigger('change');
+                } else {
+                    $(el).val(addComma(removeDigit($(el).val())));
+                }
+            }, 300);
+        }
+
+        function setValue(e, newVal) {
+            if (newVal != null) {
+                e.value = addComma(removeDigit(e.value));
+            } else {
+                e.value = addComma(removeDigit(e.value));
+            }
+            if (settings.isPercent) {
+                if (parseFloat(removeDigit(e.value)) > 100) {
+                    e.value = 100;
+                }
+            }
+            e.setAttribute('data-value', e.value);
+        }
+
+        return this.each(function () {
+            if (!$(this).hasClass('input-onlynumber')) {
+                $(this).addClass('input-onlynumber');
+                $(this).val(addComma(removeDigit($(this).val())));
+                checkValueChanged(this);
+                $(this).focus(function (e) {
+                    /*$(this).select();*/
+                }).keydown(function (e) {
+                    if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = true;
+                    var key = e.charCode || e.keyCode || 0;
+
+
+
+                    //console.log(key);
+                    //NẾU DIGITS == 0
+                    if (key == 190) {
+                        if ($.isNumeric(settings.digits)) {
+                            if (parseFloat(settings.digits) <= 0 && key == 190) {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else if (key == 189) {
+                        if (this.value.indexOf('-') == -1) {
+                            this.value = '-' + this.value;
+                        }
+                    }
+
+                    if (ctrlDown && (e.keyCode == cKey)) {
+                        //console.log("Document catch Ctrl+C");
+                        return true;
+                    }
+                    if (ctrlDown && (e.keyCode == vKey)) {
+                        //console.log("Document catch Ctrl+V");
+                        return true;
+                    }
+                    if (ctrlDown && (e.keyCode == aKey)) {
+                        //console.log("Document catch Ctrl+A");
+                        return true;
+                    }
+
+                    var isNumber = (
+                        key == 8 ||
+                        key == 9 ||
+                        key == 46 ||
+                        key == 110 ||
+                        key == 190 ||
+                        (key >= 35 && key <= 40) ||
+                        (key >= 48 && key <= 57) ||
+                        (key >= 96 && key <= 105));
+
+                    if (!isNumber && e.code !== undefined) {
+                        isNumber = e.code.indexOf('Digit') === 0 || e.code.indexOf('Period') === 0;
+                    }
+                    if (!isNumber) {
+                        return false;
+                    } else {
+                        setValue(this);
+                    }
+                }).keyup(function (e) {
+                    if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
+                    setValue(this);
+                }).keypress(function () {
+                    setValue(this);
+                }).focusout(function () {
+                    if ($(this).val() == '-' || $(this).val() == '-0' || $(this).val().length == 0) {
+                        setValue(this, '0');
+                    }
+                    else if ($(this).val().length > 0 && settings.allowDecimalPadding === false) {
+                        let arrayValue = $(this).val().split('.');
+                        if (arrayValue.length > 1) {
+                            let digitValue = arrayValue[1];
+                            if (digitValue != undefined) {
+                                if (parseFloat(digitValue) == 0) {
+                                    setValue(this, arrayValue[0]);
+                                } else {
+                                    var newDigitValue = [];
+                                    var digitReverse = reverseString(digitValue);
+                                    for (i = 0; i <= digitValue.length - 1; i++) {
+                                        if (parseFloat(digitReverse[i]) === 0) {
+                                            if (newDigitValue.length > 0) {
+                                                newDigitValue.push(digitReverse[i]);
+                                            }
+                                        } else {
+                                            newDigitValue.push(digitReverse[i]);
+                                        }
+                                    }
+                                    if (newDigitValue.length > 0) {
+                                        let arrayDigit = newDigitValue.reverse();
+                                        setValue(this, arrayValue[0] + '.' + arrayDigit.join(''));
+                                    } else {
+                                        setValue(this, arrayValue[0]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }).change(function () {
+                    setValue(this);
+                });
+            }
+        });
+    };
+}(jQuery));

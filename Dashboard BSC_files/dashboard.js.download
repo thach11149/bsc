@@ -1,0 +1,1769 @@
+﻿var arrayFiles = [];
+var hasFooterSelect = false;
+var loaiphutrach = "pt";
+function changeView(e, type) {
+    if (!$(e).parent('li').hasClass('active')) {
+        $(e).closest('.nav-tabs').find('li').removeClass('active');
+        $(e).parent('li').addClass('active')
+        $('.selectdang').val(type);
+        LoadTable();
+    }
+    return false;
+}
+$(function () {
+
+    $("body").css("overflow", "hidden");
+    $("#wrapper").css('padding', '0px');
+    if ($(window).width() <= 991) {
+        $(".app-main__inner").css('max-height', ($(window).height() - 113) + 'px');
+    }
+    else {
+        $(".app-main__inner").css('max-height', ($(window).height() - 80) + 'px');
+    }
+    khoitaongaythang();
+    KhoiTaoTreeBoPhan("bp");
+
+    var selecttansuat = $('.selecttansuat').select2({
+        language: "vi",
+        width: '100%',
+        closeOnSelect: false,
+        placeholder: $language['bsc.label.chon']	,
+        escapeMarkup: function (markup) { return markup; },
+        minimumInputLength: 0,
+        dropdownParent: $('.divfilter'),
+        templateSelection: function (data, container) {
+            var result = data.text.split(':')[0];
+            return result;
+        }
+    });
+    $('.tabparent a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href");
+        if (target == '#bang') {
+            $('.dashboard-table-grid .chitietphuongdien').each(function () {
+                $(this).treetable({ expandable: true });
+                $(this).treetable('expandAll');
+            });
+            $('.rs').resizeTable();
+            khoitaogaugehieusuatmuctieubang();
+            firsttime = false;
+        }
+        initPieChart();
+    });
+    LoadTable();
+    setTimeout(function () {
+        LoadViecTrongNgay();
+    }, 4000);
+   
+    $('.tabparent.nav a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $('.dashboard-table-grid .dashboard-table-grid-col .panel .panel-body').each(function () {
+            $(this).find('.boxResizeColumn').css('min-width', $(this).find('table').width() + 'px');
+            $(this).find('.boxResizeColumn').css('min-height', ($(this).height() - 10) + 'px');
+        });
+    })
+
+});
+
+
+function createActionPlan(e, mucTieuID) {
+    var t = window.open(`/cong-viec/${idbophanselect}/${mucTieuID}`, "", "width=" + screen.width + ", height=" + screen.height + ", left=0, top=0, location=no, menubar=no, status=no, toolbar=no, scrollbars=yes, resizable=no");
+    t.moveTo(0, 0);
+    window.reloadEntry = function (success, actionPlanID) {
+        if (success) {
+            LoadTable($('.nav-tabs > li.active > a').attr('href'));
+        }
+    }
+    return false;
+}
+function LoadDuAnNew() {
+    Loading();
+    $.ajax({
+        url: '/DuAn/LoadDuAnNew',
+        cache: false,
+        data: { selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val(), listidmuctieu: "", loaiaction:"1" },
+        type: 'GET',
+        success: function (data) {
+            RemoveLoading();
+            $(".divWrapDuAn").html(data);
+            KhoiTaoMenuBangDuAn();
+            $(".tooltipsubtask").each(function () {
+                $(this).tooltipster({
+                    content: $(this).find(".tooltipsubtask-content").html(),
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    interactiveTolerance: 50,
+                    functionBefore: function (origin, continueTooltip) {
+                        continueTooltip();
+                        initAliasName();
+                    }
+                });
+            });
+
+
+            $(".tooltipduan:not(.tooltipstered)").each(function () {
+                var idtooltip = $(this).attr("data-idcongviec");
+                $(this).tooltipster({
+                    content: $(".contenttooltipduan" + idtooltip + "").html(),
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    interactiveTolerance: 50,
+                    functionBefore: function (origin, continueTooltip) {
+                        continueTooltip();
+                        initAliasName();
+                    }
+                });
+            });
+            initAliasName();
+
+            initPieChart();
+            initPieChart2();
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+
+    return false;
+}
+
+
+function exportpdf() {
+
+    Loading();
+    var txtselect = "";
+    $('.selecttansuat option:selected').each(function () {
+        txtselect += $(this).val() + ",";
+    });
+    $('#frmExport [name="selectbophan1"]').val(idbophanselect);
+    $('#frmExport [name="datechoice"]').val($(".datepickerbsc").val());
+    $('#frmExport [name="tansuat"]').val(txtselect);
+    var url = $('#frmExport').attr('action');
+    $.ajax({
+        url: url,
+        cache: false,
+        data: $('#frmExport').serialize(),
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            if (data.status) {
+                window.location = data.file;
+            } else {
+                Notify('warning', $language['bsc.msg.loixuat']+': ' + data.file, null);
+            }
+            RemoveLoading();
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+
+    return false;
+
+}
+
+function KhoiTaoTreeBoPhan(datatree) {
+    var idselect = "";
+    ///click event node
+    $('.titleTree[data-tree=' + datatree + ']').click(function (event) {
+        event.stopPropagation();
+        $('.divtreebophan[data-tree=' + datatree + ']').show();
+    });
+    $('.divtreebophan[data-tree=' + datatree + ']').on("click", function (event) {
+        event.stopPropagation();
+    });
+
+    ///init and change event node
+    $(".divcontentTree[data-tree=" + datatree + "]").on('changed.jstree', function (e, data) {
+        if (checkchonnhanvien) {
+            $('.divtreebophan').hide();
+            LoadTable();
+        }
+        else {
+            var i, j, r = [], rowid = [];
+            for (i = 0, j = data.selected.length; i < j; i++) {
+                r.push(data.instance.get_node(data.selected[i]).data.tenhienthi);
+                rowid.push(data.instance.get_node(data.selected[i]).id);
+            }
+
+            $(".titleTree[data-tree=" + datatree + "]").text(r.join(', '));
+            idselect = rowid.join(', ');
+            if (idselect != idbophanselect) {
+                idbophanselect = idselect;
+                $('.divtreebophan').hide();
+                LoadTable();
+            }
+        }
+
+    }).jstree({
+        "search": {
+            "show_only_matches": true
+        },
+        "plugins": ["search"],
+        core: {
+            multiple: false
+        }
+    });
+
+    ///select node
+    if (idbophanselect == 0) {
+        $(".divcontentTree[data-tree=" + datatree + "]").jstree('open_node', $(".divcontentTree[data-tree=" + datatree + "] .jstree-node:first-child").attr("id"));
+    }
+    else {
+        if (idbophanselect.startsWith("nv")) {
+            $(".divcontentTree[data-tree=" + datatree + "]").jstree()._open_to(IDBoPhanParentChoice);
+            if ($(".tennhanvien").length == 0) {
+                $(".divcontentTree[data-tree=" + datatree + "]").jstree('open_node', $(".divcontentTree[data-tree=" + datatree + "] .jstree-node:first-child").attr("id"));
+                $(".divcontentTree[data-tree=" + datatree + "]").jstree('select_node', idbophanselect, true);
+            }
+            else {
+                $(".tennhanvien").each(function () {
+                    if ($(this).attr("id") == '' + idbophanselect + '') {
+                        $(this).parent().toggle();
+                        choicenhanvien($(this));
+                    }
+
+                });
+            }
+
+        }
+        else {
+            $(".divcontentTree[data-tree=" + datatree + "]").jstree('open_node', $(".divcontentTree[data-tree=" + datatree + "] .jstree-node:first-child").attr("id"));
+            $(".divcontentTree[data-tree=" + datatree + "]").jstree('select_node', idbophanselect, true);
+        }
+    }
+
+    ///Search tree
+    var to = false;
+    $(".searchtree[data-tree=" + datatree + "]").keyup(function () {
+        if (to) { clearTimeout(to); }
+        to = setTimeout(function () {
+            var v = $(".searchtree[data-tree=" + datatree + "]").val();
+            $(".divcontentTree[data-tree=" + datatree + "]").jstree(true).search(v);
+        }, 250);
+    });
+
+
+}
+function showhidenhanvien(item) {
+    event.stopPropagation();
+    $(item).next(".treenhanvien").toggle();
+}
+function choicenhanvien(item) {
+    checkchonnhanvien = true;
+    $(item).parents(".wrapbophan").find(".titleTree").text($(item).text());
+    idbophanselect = $(item).attr("id");
+}
+function LoadTable(tabActive) {
+    $('.page-header .divfilter, .page-header-button .divfilter').hide();
+    checkchonnhanvien = false;
+    $('.page-header .divfilter').hide();
+
+    var txtselect = "";
+    $('.selecttansuat option:selected').each(function () {
+        txtselect += $(this).val() + ",";
+    });
+    Loading();
+    $('#frmExport [name="selectbophan1"]').val(idbophanselect);
+    $('#frmExport [name="datechoice"]').val($(".datepickerbsc").val());
+    $('#frmExport [name="tansuat"]').val(txtselect);
+
+    if ($(".selectdang").val() == '1') {
+        $.ajax({
+            url: '/Dashboard/ServerSideTable',
+            cache: false,
+            data: { selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val(), tansuat: txtselect },
+            type: 'GET',
+            success: function (data) {
+                RemoveLoading();
+                $('#tonghoinoidung').html(data);
+
+                initAliasName();
+                if (tabActive == null) {
+                    $('.nav-tabs a[href="#bieudo"]').click();
+                } else {
+                    $('.nav-tabs a[href="' + tabActive + '"]').click();
+                }
+                activeGauge();
+                inittooltipmuctieu();
+                shortenMore('.truncate', 60);
+                shortenMore2('.truncate2', 102);
+                //if ($(".tableactionplan").length > 0) {
+                //    $(".tableactionplan,.tableviecduocgiao").treetable({
+                //        expandable: true
+                //    });
+                //    $(".tableactionplan,.tableviecduocgiao").treetable('expandAll');
+                //}
+
+                //$('.tabactionplan a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                //    if ($("#viecphutrach .tableactionplan").length > 0) {
+                //        $("#viecphutrach .tableactionplan,#viecduocgiao .tableactionplan").each(function () {
+                //            $(this).treetable('expandAll');
+                //        });
+                //    }
+                //})
+
+                $('.dashboard-table-grid .dashboard-table-grid-col .panel .panel-body').each(function () {
+                    $(this).dragscrollable({});
+                    $(this).find('.boxResizeColumn').css('min-width', $(this).find('table').width() + 'px');
+                    $(this).find('.boxResizeColumn').css('min-height', ($(this).height() - 10) + 'px');
+                });
+                KhoiTaoMenuBangDuAn();
+                $(".tooltipsubtask").each(function () {
+                    $(this).tooltipster({
+                        content: $(this).find(".tooltipsubtask-content").html(),
+                        contentAsHTML: true,
+                        interactive: true,
+                        arrow: true,
+                        interactiveTolerance: 50,
+                        functionBefore: function (origin, continueTooltip) {
+                            continueTooltip();
+                            initAliasName();
+                        }
+                    });
+                });
+
+
+                $(".tooltipduan:not(.tooltipstered)").each(function () {
+                    var idtooltip = $(this).attr("data-idcongviec");
+                    $(this).tooltipster({
+                        content: $(".contenttooltipduan" + idtooltip + "").html(),
+                        contentAsHTML: true,
+                        interactive: true,
+                        arrow: true,
+                        interactiveTolerance: 50,
+                        functionBefore: function (origin, continueTooltip) {
+                            continueTooltip();
+                            initAliasName();
+                        }
+                    });
+                });
+                initAliasName();
+               
+                initPieChart(); 
+                initPieChart2();
+            },
+            error: function (a, b, c) {
+                RemoveLoading();
+            }
+        });
+    }
+    else {
+        $.ajax({
+            url: '/Dashboard/ServerSideTableBang',
+            cache: false,
+            data: { selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val(), tansuat: txtselect },
+            type: 'GET',
+            success: function (data) {
+                RemoveLoading();
+                $('#tonghoinoidung').html(data);
+
+                $('.dashboard-table-grid .chitietphuongdien').each(function () {
+                    $(this).treetable({ expandable: true });
+                    $(this).treetable('expandAll');
+                });
+
+                $('.rs').resizeTable();
+                khoitaogaugehieusuatmuctieu();
+
+                $('.dashboard-table-grid .dashboard-table-grid-col .panel .panel-body').each(function () {
+                    $(this).dragscrollable({});
+                    $(this).find('.boxResizeColumn').css('min-width', $(this).find('table').width() + 'px');
+                    $(this).find('.boxResizeColumn').css('min-height', ($(this).height() - 10) + 'px');
+                });
+
+                initPieChart();
+                //var thHeight = $("#tablephanbotitrong .rs:first").height();
+                //$("#tablephanbotitrong .rs").resizable({
+                //    handles: "e",
+                //    minHeight: thHeight,
+                //    maxHeight: thHeight,
+                //    minWidth: 40
+                //});
+            },
+            error: function (a, b, c) {
+                RemoveLoading();
+            }
+        });
+    }
+
+
+
+
+    return false;
+
+}
+
+let arrayPieChart = [];
+
+function initPieChart() {
+    $('#pieChartPhuTrach,#pieChartDuocGiao,#pieChartPhuTrachBang,#pieChartDuocGiaoBang').each(function (index) {
+
+        if (arrayPieChart[index] != undefined) {
+            arrayPieChart[index].destroy();
+        }
+
+        let elPieChart = $(this);
+        arrayPieChart[index] = Highcharts.chart($(this).attr('id'), {
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: '',//`Tổng công việc: ${elPieChart.attr('data-total')}`
+            },
+            credits: {
+                enabled: false
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.y:.f}</b>'
+            },
+            accessibility: {
+                point: {
+                    valueSuffix: ''
+                }
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: false,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true
+                    },
+                    showInLegend: true
+                }
+            },
+            series: [{
+                showInLegend: false,
+                name: $language['bsc.title.socongviec'],
+                colorByPoint: true,
+                data: [{
+                    name: $language['vanhoa.btn.hoanthanh'],
+                    y: toFloat(elPieChart.attr('data-hoanthanh'))
+                }, {
+                    name: $language['bsc.label.chuabatdau'],
+                    y: toFloat(elPieChart.attr('data-chuabatdau'))
+                }, {
+                    name: $language['bsc.label.dangtrienkhai'],
+                    y: toFloat(elPieChart.attr('data-dangtrienkhai'))
+                }, {
+                    name: $language['bsc.label.tretiendo'],
+                    y: toFloat(elPieChart.attr('data-tretiendo'))
+                }]
+            }],
+            colors: ['#30b32d', '#cccccc', '#337ab7', '#f03e3e']
+        });
+    });
+}
+let arrayPieChart2 = [];
+function initPieChart2() {
+    $('#pieChartpt,#pieChartdg,#pieChartht,#pieChartViecTrongNgay').each(function (index) {
+        if (arrayPieChart2[index] != undefined) {
+            arrayPieChart2[index].destroy();
+        }
+        let elPieChart = $(this);
+        var ctx = $(this)[0].getContext('2d');
+        // Data for the chart
+        var data = {
+            labels: ['' + $language['vanhoa.btn.hoanthanh'], '' + $language['bsc.label.chuabatdau'], '' + $language['bsc.label.dangtrienkhai'], '' + $language['bsc.label.tretiendo']],
+            datasets: [{
+                label: ' Số lượng',
+                data: [toFloat(elPieChart.attr('data-hoanthanh')), toFloat(elPieChart.attr('data-chuabatdau')), toFloat(elPieChart.attr('data-dangtrienkhai')), toFloat(elPieChart.attr('data-tretiendo'))],
+                backgroundColor: ['#A7D6AC', '#F2E5A9', '#96BCD9', '#f7665f'],
+                hoverOffset: 4
+            }]
+        };
+        // Options for the chart
+        var options = {
+            cutout: '70%',  // This makes the chart a donut by cutting out the center
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                },
+            },
+        };
+        // Create the donut chart
+        arrayPieChart2[index] = new Chart(ctx, {
+            type: 'doughnut',  // Donut chart type
+            data: data,
+            options: options
+        });
+    });
+
+}
+
+$.fn.resizeTable = function () {
+    return this.each(function () {
+
+        var pressed = false;
+        var start = undefined;
+        var startX, startWidth, tableWidth, minWidth;
+
+        let elRS = $(this);
+        let elTable = $(this).closest("table");
+        elRS.mousedown(function (e) {
+            start = $(this);
+            pressed = true;
+            startX = e.pageX;
+            minWidth = elRS.css('min-width').replaceAll('px', '');
+            startWidth = elRS.width();
+            tableWidth = elTable.width();
+            $(start).addClass("resizing");
+        });
+        $(document).mousemove(function (e) {
+            if (pressed) {
+                if (minWidth <= startWidth + (e.pageX - startX)) {
+                    elTable.css('width', tableWidth + (e.pageX - startX));
+                    console.log(elTable.length, tableWidth + (e.pageX - startX));
+                    $(start).width(startWidth + (e.pageX - startX));
+                    //$(".boxResizeColumn").css('width', tableWidth + (e.pageX - startX));
+                }
+            }
+        });
+
+        $(document).mouseup(function () {
+            if (pressed) {
+                $(start).removeClass("resizing");
+                pressed = false;
+            }
+        });
+
+    });
+
+}
+$.fn.resizeTablePD = function () {
+    return this.each(function () {
+        let elRS = $(this);
+        let elTable = $(this).closest("table");
+        elRS.mousedown(function (e) {
+            start = $(this);
+            pressed = true;
+            startX = e.pageX;
+            minWidth = elRS.css('min-width').replaceAll('px', '');
+            startWidth = elRS.width();
+            tableWidth = elTable.width();
+            $(start).addClass("resizing");
+        });
+
+        $(document).mousemove(function (e) {
+            if (pressed) {
+                if (minWidth <= startWidth + (e.pageX - startX)) {
+                    $(".popupchitietphuongdien").css('width', tableWidth + (e.pageX - startX));
+                    $(start).width(startWidth + (e.pageX - startX));
+                }
+            }
+        });
+
+        $(document).mouseup(function () {
+            if (pressed) {
+                $(start).removeClass("resizing");
+                pressed = false;
+            }
+        });
+    });
+}
+function ShowPhuongDien(id, item) {
+    var url = '/Dashboard/GetTreePhuongDien';
+    var txtselect = "";
+    $('.selecttansuat option:selected').each(function () {
+        txtselect += $(this).val() + ",";
+    });
+    Loading();
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: { id: id, selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val(), tansuat: txtselect },
+        cache: false,
+        success: function (response) {
+            $('#myModal .modal-body').html(response);
+            $('#myModal .modal-title').html($language['congviec.chitiet']);
+            $('#myModal').modal('show');
+            setTimeout(function () {
+                $('#branch1 > .entry > .labelTree').each(function () {
+                    let height = $(this).outerHeight();
+                    let elLV2 = $(this).next('.branch.lv2').find('.entry');
+                    let minH = height / elLV2.length;
+                    if (minH > 60) {
+                        $(this).next('.branch.lv2').find('.entry').css('min-height', minH + 15);
+                    }
+
+                    if (height > 125) {
+                        let top = (height - 125) / 2 + 15;
+                        $(this).css('margin-top', (top * -1) + 'px');
+                    }
+                });
+                $('#wrapperTreePhuongDien').css('--data-height', $('#branch1').outerHeight() + 'px');
+                $('#wrapperTreePhuongDien').scrollTop($('#branch1').outerHeight() / 4);
+            }, 300);
+            inittooltipchitiet();
+            RemoveLoading();
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+}
+function ShowKPI(item, id) {
+    var url = '/Dashboard/GetTreeKPI';
+    Loading();
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: { id: id, selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val() },
+        cache: false,
+        success: function (response) {
+            $('.detailKPI').html(response);
+            $(".highlightkpi").removeClass("highlightkpi");
+            $(item).find(".labelTreeTen").addClass("highlightkpi");
+            showchartBaoCaoKPI('.detailKPI');
+            RemoveLoading();
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+    ShowKPIChilds(item, id);
+    return false;
+}
+
+function ShowKPIChilds(item, id) {
+    $('.detailKPIChilds').html('');
+    var url = '/Dashboard/GetTreeKPIChilds';
+    Loading();
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: { id: id, selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val() },
+        cache: false,
+        success: function (response) {
+            $('.detailKPIChilds').html(response);
+            //$(".highlightkpi").removeClass("highlightkpi");
+            //$(item).find(".labelTreeTen").addClass("highlightkpi");
+            showchartBaoCaoKPI('.boxkpichild');
+            RemoveLoading();
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+}
+function ShowBaoCao(id, item) {
+    var url = '/Dashboard/GetBaoCao';
+    Loading();
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: { id: id, selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val() },
+        cache: false,
+        success: function (response) {
+            RemoveLoading();
+            $('#myModalKPI .modal-body').html(response);
+            $('#myModalKPI .modal-title').html($language['bsc.label.baocao']+' ' + $(item).attr('title'));
+            setTimeout(function () {
+                activeGaugeKPI();
+            }, 500);
+            $('#myModalKPI').modal('show');
+
+            showchartKPI();
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+}
+function activeGaugeKPI() {
+    $(".hieusuatkpibaocao").each(function () {
+        var id = $(this).data("idkpi");
+        var min = $(this).data("min");
+        var max = $(this).data("max");
+        var giatri = $(this).data("value");
+        var minvalue = parseFloat(min);
+        var maxvalue = parseFloat(max);
+        var value = parseFloat(giatri);
+
+        var hanhtrinh = maxvalue - minvalue;
+
+        var nguongred = 40;
+        var nguongyellow = 70;
+        var nguonggreen = 100;
+
+        var number1 = minvalue;
+        var number2 = (nguongred * hanhtrinh / 100) + minvalue;
+        var number3 = (nguongyellow * hanhtrinh / 100) + minvalue;
+        var number5 = maxvalue;
+
+        var colorgauge = '';
+        if (value >= number1 && value <= number2) {
+            colorgauge = '#F03E3E';
+        }
+        else if (value > number2 && value <= number3) {
+            colorgauge = '#FFDD00';
+        }
+        else if (value > number3 && value <= number5) {
+            colorgauge = '#30B32D';
+        }
+        else if (value > maxvalue) {
+            colorgauge = '#03a9f4';
+        }
+        var zone = [];
+
+        if (value <= maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        else if (value > maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        var label = [];
+        initZones(minvalue, value, maxvalue, zone, label, "gaugehieusuatkpibaocao" + id, "texthieusuatkpibaocao" + id);
+    });
+
+}
+function activeGauge() {
+    $(".hieusuat").each(function () {
+        var id = $(this).data("idmuctieu");
+        var min = $(this).data("min");
+        var max = $(this).data("max");
+        var giatri = $(this).data("value");
+        var minvalue = parseFloat(min);
+        var maxvalue = parseFloat(max);
+        var value = parseFloat(giatri);
+
+        var hanhtrinh = maxvalue - minvalue;
+
+        var nguongred = 40;
+        var nguongyellow = 70;
+        var nguonggreen = 100;
+
+        var zone = [];
+        var number1 = minvalue;
+        var number2 = (nguongred * hanhtrinh / 100) + minvalue;
+        var number3 = (nguongyellow * hanhtrinh / 100) + minvalue;
+        var number5 = maxvalue;
+        zone.push({ 'strokeStyle': '#F03E3E', 'min': number1, 'max': number2 });
+        zone.push({ 'strokeStyle': '#FFDD00', 'min': number2, 'max': number3 });
+        zone.push({ 'strokeStyle': '#30B32D', 'min': number3, 'max': number5 });
+        if (value > maxvalue) {
+            zone.push({ 'strokeStyle': '#03a9f4', 'min': number5, 'max': number5 * 2 });
+        }
+
+        var label = [];
+        label.push({ 'ten': (number1.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number1 });
+        label.push({ 'ten': (number2.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number2 });
+        label.push({ 'ten': (number3.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number3 });
+        label.push({ 'ten': (number5.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number5 });
+
+
+        initZones(minvalue, value, maxvalue, zone, label, "gaugehieusuat" + id, "texthieusuat" + id);
+    });
+    khoitaogaugehieusuatmuctieu();
+
+    $(".tiendo").each(function () {
+        var id = $(this).data("idmuctieu");
+        var min = $(this).data("min");
+        var max = $(this).data("max");
+        var giatri = $(this).data("value");
+        var minvalue = parseFloat(min);
+        var maxvalue = parseFloat(max);
+        var value = parseFloat(giatri);
+
+        var hanhtrinh = maxvalue - minvalue;
+
+        var nguongred = 40;
+        var nguongyellow = 70;
+        var nguonggreen = 100;
+
+        var zone = [];
+        var number1 = minvalue;
+        var number2 = (nguongred * hanhtrinh / 100) + minvalue;
+        var number3 = (nguongyellow * hanhtrinh / 100) + minvalue;
+        var number5 = maxvalue;
+        zone.push({ 'strokeStyle': '#F03E3E', 'min': number1, 'max': number2 });
+        zone.push({ 'strokeStyle': '#FFDD00', 'min': number2, 'max': number3 });
+        zone.push({ 'strokeStyle': '#30B32D', 'min': number3, 'max': number5 });
+        if (value > maxvalue) {
+            zone.push({ 'strokeStyle': '#03a9f4', 'min': number5, 'max': number5 * 2 });
+        }
+
+        var label = [];
+        label.push({ 'ten': (number1.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number1 });
+        label.push({ 'ten': (number2.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number2 });
+        label.push({ 'ten': (number3.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number3 });
+        label.push({ 'ten': (number5.toFixed(2) + "").replace(/\.00/g, ''), 'giatri': number5 });
+
+
+        initZones(minvalue, value, maxvalue, zone, label, "gaugetiendo" + id, "texttiendo" + id);
+    });
+}
+function khoitaogaugehieusuatmuctieu() {
+    $(".hieusuatmuctieu").each(function () {
+        var id = $(this).data("idmuctieu");
+        var min = $(this).data("min");
+        var max = $(this).data("max");
+        var giatri = $(this).data("value");
+        var minvalue = parseFloat(min);
+        var maxvalue = parseFloat(max);
+        var value = parseFloat(giatri);
+
+        var hanhtrinh = maxvalue - minvalue;
+
+        var nguongred = 40;
+        var nguongyellow = 70;
+        var nguonggreen = 100;
+
+        var number1 = minvalue;
+        var number2 = (nguongred * hanhtrinh / 100) + minvalue;
+        var number3 = (nguongyellow * hanhtrinh / 100) + minvalue;
+        var number5 = maxvalue;
+
+        var colorgauge = '';
+        if (value >= number1 && value <= number2) {
+            colorgauge = '#F03E3E';
+        }
+        else if (value > number2 && value <= number3) {
+            colorgauge = '#FFDD00';
+        }
+        else if (value > number3 && value <= number5) {
+            colorgauge = '#30B32D';
+        }
+        else if (value > maxvalue) {
+            colorgauge = '#03a9f4';
+        }
+
+
+        var zone = [];
+
+        if (value <= maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        else if (value > maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        var label = [];
+        initZones(minvalue, value, maxvalue, zone, label, "gaugehieusuat" + id, "texthieusuat" + id);
+    });
+}
+function khoitaogaugehieusuatmuctieubang() {
+    $(".hieusuatmuctieubang").each(function () {
+        var id = $(this).data("idmuctieu");
+        var min = $(this).data("min");
+        var max = $(this).data("max");
+        var giatri = $(this).data("value");
+        var minvalue = parseFloat(min);
+        var maxvalue = parseFloat(max);
+        var value = parseFloat(giatri);
+
+        var hanhtrinh = maxvalue - minvalue;
+
+        var nguongred = 40;
+        var nguongyellow = 70;
+        var nguonggreen = 100;
+
+        var number1 = minvalue;
+        var number2 = (nguongred * hanhtrinh / 100) + minvalue;
+        var number3 = (nguongyellow * hanhtrinh / 100) + minvalue;
+        var number5 = maxvalue;
+
+        var colorgauge = '';
+        if (value >= number1 && value <= number2) {
+            colorgauge = '#F03E3E';
+        }
+        else if (value > number2 && value <= number3) {
+            colorgauge = '#FFDD00';
+        }
+        else if (value > number3 && value <= number5) {
+            colorgauge = '#30B32D';
+        }
+        else if (value > maxvalue) {
+            colorgauge = '#03a9f4';
+        }
+
+
+        var zone = [];
+
+        if (value <= maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        else if (value > maxvalue) {
+            zone.push({ 'strokeStyle': colorgauge, 'min': minvalue, 'max': value });
+        }
+        var label = [];
+        initZones(minvalue, value, maxvalue, zone, label, "gaugehieusuatbang" + id, "texthieusuatbang" + id);
+    });
+}
+function initZones(minvalue, value, maxvalue, zone, label, gaugehieusuat, texthieusuat) {
+    demoGauge = new Gauge(document.getElementById(gaugehieusuat));
+    var opts = {
+        angle: 0,
+        lineWidth: 0.2,
+        radiusScale: 1,
+        pointer: {
+            length: 0.55,
+            strokeWidth: 0.05,
+            color: '#000000'
+        },
+        staticLabels: {
+            font: "0px sans-serif",
+            labels: label,
+            fractionDigits: 0,
+
+        },
+        staticZones: zone,
+        limitMax: false,
+        limitMin: false,
+        highDpiSupport: false
+    };
+
+    demoGauge.setOptions(opts);
+    //demoGauge.setTextField(document.getElementById(texthieusuat));
+    demoGauge.minValue = minvalue;
+    demoGauge.maxValue = maxvalue;
+    demoGauge.set(value);
+};
+
+function showchartBaoCao() {
+    var datathucte = [];
+    var datachitieu = [];
+    var dataname = [];
+    $(".tdthucte").each(function () {
+        datathucte.push(parseFloat(($(this).data("giatri"))));
+    })
+    $(".tdchitieu").each(function () {
+        datachitieu.push(parseFloat(($(this).data("giatri"))));
+    })
+    $(".tdky").each(function () {
+        dataname.push($(this).text());
+    })
+    Highcharts.chart('getbieudokpi', {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: ''
+        },
+        xAxis: {
+            categories: dataname
+        },
+
+        series: [{
+            name: $language['bsc.label.thucte'],
+            data: datathucte,
+            color: "#f7a35c"
+        },
+        {
+            name: $language['bsc.label.chitieu'],
+            data: datachitieu,
+            color: "#7cb5ec"
+        }],
+
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 500
+                },
+                chartOptions: {
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'center',
+                        verticalAlign: 'bottom'
+                    }
+                }
+            }]
+        }
+
+    });
+}
+function showchartKPI() {
+    var datathucte = [];
+    var datachitieu = [];
+    var dataname = [];
+    $(".chitiettdthucte").each(function () {
+        datathucte.push(parseFloat(($(this).data("giatri").replaceAll(",",""))));
+    })
+    $(".chitiettdchitieu").each(function () {
+        datachitieu.push(parseFloat(($(this).data("giatri").replaceAll(",", ""))));
+    })
+    $(".chitiettdky").each(function () {
+        dataname.push($(this).text());
+    })
+    var tendonviget = $(".tendonviget").text();
+    Highcharts.chart('getbieudokpichitiet', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: ''
+        },
+        xAxis: {
+            categories: dataname
+        },
+
+        series: [{
+            name: $language['bsc.label.thucte'],
+            data: datathucte,
+            color: "#1f4383"
+        },
+        {
+            name: $language['bsc.label.chitieu'],
+            data: datachitieu,
+            color: "#2caffe"
+        }],
+        plotOptions: {
+            series: {
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y:,.0f} ' + tendonviget +''
+                }
+            }
+        },
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 500
+                },
+                chartOptions: {
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'center',
+                        verticalAlign: 'bottom'
+                    }
+                }
+            }]
+        }
+
+    });
+}
+
+function inittooltipmuctieu() {
+    $('.tooltipphuongdien').each(function () {
+        var iditem = $(this).data("iditem");
+        $(this).tooltipster({
+            content: $(".tooltippddb" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.tooltipmuctieu').each(function () {
+        var idmuctieu = $(this).data("muctieuid");
+        $(this).tooltipster({
+            content: $(".listKPI" + idmuctieu + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.chartcontent').each(function () {
+        $(this).tooltipster({
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.icon-alertbaocao').each(function () {
+        $(this).tooltipster({
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+}
+function inittooltipchitiet() {
+    $('.tooltipphuongdiendd').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltippddd" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+
+    $('.tooltipphuongdienlt').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltippdlt" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.tooltipmuctieudd').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltipmtdd" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.tooltipmuctieult').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltipmtlt" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+}
+function init() {
+
+
+    //$(".toggleable").on("click", function () {
+    //    if (this.nextElementSibling) {
+    //        var next_branch = $(this).nextAll(".branch");
+    //        next_branch.toggle();
+    //        $(this).toggleClass("hasMore");
+    //        if ($(this).attr('id') == 'root') {
+    //            if ($(this).css("margin-top") == "25px") {
+    //                $(this).css("margin-top", "-7px");
+    //            } else {
+    //                $(this).css("margin-top", "25px");
+    //            };
+    //        };
+    //    }
+    //});
+
+    setTimeout(function () {
+        $('#wrapperTreePhuongDien').css('--data-height', $('#branch1').outerHeight() + 'px');
+    }, 300);
+}
+function showchartBaoCaoKPI() {
+    var datathucte = [];
+    var datachitieu = [];
+    var dataname = [];
+    var tendonvi = '';
+    $(".tdthucte").each(function () {
+        datathucte.push(parseFloat(($(this).data("giatri"))));
+    })
+    $(".tdchitieu").each(function () {
+        datachitieu.push(parseFloat(($(this).data("giatri"))));
+    })
+    $(".tdky").each(function () {
+        dataname.push($(this).data("giatri"));
+        tendonvi = $(this).data("tendonvi");
+    })
+    Highcharts.chart('getChartKPI', {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: ''
+        },
+        xAxis: {
+            categories: dataname
+        },
+        yAxis: {
+            title: {
+                text: tendonvi,
+                align: 'high'
+            },
+            labels: {
+                overflow: 'justify'
+            },
+            gridLineWidth: 0
+        },
+        tooltip: {
+            valueSuffix: ' ' + tendonvi
+        },
+
+        series: [{
+            name: $language['bsc.label.thucte'],
+            data: datathucte,
+            color: "#1f4383"
+        },
+        {
+            name: $language['bsc.label.chitieu'],
+            data: datachitieu,
+            color: "#2caffe"
+        }],
+        credits: {
+            enabled: false
+        },
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 500,
+                    height: 300
+                },
+                chartOptions: {
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'center',
+                        verticalAlign: 'top'
+                    }
+                }
+            }]
+        }
+
+    });
+
+    $('.tooltipkpisdd').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltipkpidd" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.tooltipkpislt').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltipkpilt" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+    $('.tooltipkpiscn').each(function () {
+        var iditem = $(this).data("itemid");
+        $(this).tooltipster({
+            content: $(".tooltipkpicn" + iditem + "").html(),
+            contentAsHTML: true,
+            interactive: true,
+            arrow: true,
+            interactiveTolerance: 50
+        });
+    });
+}
+
+function ShowXuongCa(idmuctieu) {
+    var url = '/Dashboard/BaoCaoXuongCa';
+    var txtselect = "";
+    $('.selecttansuat option:selected').each(function () {
+        txtselect += $(this).val() + ",";
+    });
+    Loading();
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: { idmuctieu: idmuctieu, selectbophan: idbophanselect, datechoice: $(".datepickerbsc").val(), tansuat: txtselect },
+        cache: false,
+        success: function (response) {
+            RemoveLoading();
+            $('#myModalMucTieu .modal-body').html(response);
+            $('#myModalMucTieu .modal-title').html($language['bsc.btn.baocaoxuongca']);
+            setTimeout(function () {
+                autoheighttext();
+                autoPositionMucTieu();
+                $(".groupkpi .divscrollflex").each(function () {
+                    makeScrollFake($(this).parents('.xuongcatrai'));
+                });
+                reorderMuctieu();
+                TooltipGhiChuXuongCa();
+                inittooltipmuctieu();
+
+                $('#myModalMucTieu .modal-body .xuongcatrai .box-icon-phongban .count-icon:not(.contentkpiremove)').each(function () {
+                    $(this).click(function () {
+                        let bpID = $(this).attr('data-bpid');
+                        if (bpID != undefined && bpID != null && bpID != '') {
+                            let mucTieuID = $(this).closest('.wrapmuctieu').attr('data-kpi');
+                            ShowXuongCaChild(mucTieuID, bpID);
+                        }
+                    });
+                });
+            }, 300);
+
+            $('#myModalMucTieu').modal('show');
+
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+}
+
+function ShowXuongCaChild(idmuctieu, bpID) {
+
+    let modalID = `myModalXC` + Math.random().toString().replaceAll(".", "");
+    let modalHtml = `<div class="modal fade bs-example-modal-lg" id="${modalID}" role="dialog" aria-labelledby="myLargeModalLabel">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button data-loading-text="..." type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title">Modal title</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>One fine body&hellip;</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+    var url = '/Dashboard/BaoCaoXuongCa';
+    var txtselect = "";
+    $('.selecttansuat option:selected').each(function () {
+        txtselect += $(this).val() + ",";
+    });
+    Loading();
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: { idmuctieu: idmuctieu, selectbophan: bpID, datechoice: $(".datepickerbsc").val(), tansuat: txtselect },
+        cache: false,
+        success: function (response) {
+
+            $('body').append(modalHtml);
+            $('#' + modalID).modal({
+                keyboard: false,
+                backdrop: 'static',
+                show: false
+            });
+
+
+            RemoveLoading();
+            $('#' + modalID + ' .modal-body').html(response);
+            $('#' + modalID + ' .modal-title').html($language['bsc.btn.baocaoxuongca']);
+            setTimeout(function () {
+                autoheighttext();
+                autoPositionMucTieu();
+                $('#' + modalID + '.groupkpi .divscrollflex').each(function () {
+                    makeScrollFake($(this).parents('.xuongcatrai'));
+                });
+                reorderMuctieu();
+                TooltipGhiChuXuongCa();
+                inittooltipmuctieu();
+
+                $('#' + modalID + ' .modal-body .xuongcatrai .box-icon-phongban .count-icon:not(.contentkpiremove)').each(function () {
+                    $(this).click(function () {
+                        let bpID = $(this).attr('data-bpid');
+                        if (bpID != undefined && bpID != null && bpID != '') {
+                            let mucTieuID = $(this).closest('.wrapmuctieu').attr('data-kpi');
+                            ShowXuongCaChild(mucTieuID, bpID);
+                        }
+                    });
+                });
+            }, 300);
+
+            $('#' + modalID).modal('show');
+
+        },
+        error: function () {
+            RemoveLoading();
+
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+
+    return false;
+}
+
+
+function autoPositionMucTieu() {
+
+    $(".giuaarrow").each(function () {
+        var positionarrow = $(this).position().top;
+        var divdauca = $(this).parents(".groupkpi").find(".xuongcaphai");
+        var heightmuctieutrong = $(divdauca).find(".muctieutong").outerHeight();
+        $(divdauca).css("margin-top", (positionarrow + 29 - ((heightmuctieutrong + 10) / 2)) + "px");
+    });
+}
+function makeScrollFake(divXC, scrollToLeft) {
+    var maxWidth = divXC.width();
+
+    var divMTTop = divXC.find('.trenmuctieu');
+    var divMTBot = divXC.find('.duoimuctieu');
+    var divFakeScrollT = divXC.find('.fakeScrollTop');
+    var divFakeScrollB = divXC.find('.fakeScrollBot');
+
+    var maxWidthTop = -15;
+    divMTTop.find('.wrapmuctieu').each(function () {
+        maxWidthTop += $(this).outerWidth() + 15;
+    });
+
+    //divFakeScrollT.find('.fakeScrollWidth').width(maxWidthTop);
+
+    var maxWidthBot = -15;
+    divMTBot.find('.wrapmuctieu').each(function () {
+        maxWidthBot += $(this).outerWidth() + 15;
+    });
+
+    if (maxWidthTop > maxWidthBot) {
+        divFakeScrollB.find('.fakeScrollWidth').width(maxWidthTop);
+    } else {
+        divFakeScrollB.find('.fakeScrollWidth').width(maxWidthBot);
+    }
+    //divFakeScrollB.find('.fakeScrollWidth').width(maxWidthBot);
+
+
+    //makeScrollFakeEvent(divFakeScrollT, divMTTop, 'tren');
+    makeScrollFakeEvent(divFakeScrollB, divMTBot, 'duoi');
+    if (scrollToLeft != null && scrollToLeft) {
+        let posLeft = maxWidth - divFakeScrollB.find('.fakeScrollWidth').width();
+        if (posLeft < 0) {
+            $(divFakeScrollB).scrollLeft(posLeft - 65);
+        }
+    }
+}
+
+function makeScrollFakeEvent(e, elDiv, pos) {
+    $(e).unbind('scroll');
+    $(e).scroll(function (event) {
+
+        var divXC = elDiv.parents('.xuongcatrai');//.css('margin-right', e.scrollLeft());
+        divXC.find('.trenkpi').css('margin-right', e.scrollLeft() + 50);
+        divXC.find('.trenmuctieu').css('margin-right', e.scrollLeft() + 50);
+        divXC.find('.trenbophan').css('margin-right', e.scrollLeft() + 50);
+        divXC.find('.duoikpi').css('margin-right', e.scrollLeft() + 50);
+        divXC.find('.duoimuctieu').css('margin-right', e.scrollLeft() + 50);
+        divXC.find('.duoibophan').css('margin-right', e.scrollLeft() + 50);
+
+        //if (pos == 'tren') {
+        //    elDiv.prev('.trenkpi').css('margin-right', e.scrollLeft());
+        //    elDiv.next('.trenbophan').css('margin-right', e.scrollLeft());
+        //} else {
+        //    elDiv.next('.duoikpi').css('margin-right', e.scrollLeft());
+        //    elDiv.prev('.duoibophan').css('margin-right', e.scrollLeft());
+        //}
+    });
+}
+function reorderMuctieu() {
+
+    $('.groupkpi').each(function () {
+        var index = 1;
+        $(this).find('.parentindex').each(function () {
+            $(this).find("span.badgenumber").text("" + index);
+            index++;
+        });
+    });
+
+
+}
+function TooltipGhiChuXuongCa() {
+
+    $('.divmenutooltip span').each(function () {
+        let title = $(this).attr('title');
+        if (title != null && title != undefined) {
+            $(this).attr('data-title', title);
+        }
+        $(this).attr('title', $(this).attr('data-title'));
+        $(this).tooltipster({
+            position: 'left',
+            interactiveTolerance: 50
+        });
+    });
+
+    $('.tooltipghichuxuongca').each(function () {
+        var parentdiv = $(this).parent().parent();
+        if ($(parentdiv).hasClass("duoikpi")) {
+            $(this).tooltipster({
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                position: 'bottom',
+                interactiveTolerance: 50
+            });
+        }
+        else {
+            $(this).tooltipster({
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                position: 'top',
+                interactiveTolerance: 50
+            });
+        }
+    });
+
+    $('.tooltipghichu').tooltipster({
+        contentAsHTML: true,
+        interactive: true,
+        arrow: true,
+        theme: 'tooltipster-light',
+        position: 'bottom',
+        interactiveTolerance: 50
+    });
+}
+function checkChange() {
+    return false;
+
+
+}
+
+function showFullScreenDiv(e) {
+
+    if ($(e).closest('.panel').hasClass('fullscreendiv')) {
+        $('body').removeClass('modal-open');
+        $(e).closest('.panel').removeClass('fullscreendiv');
+        $(e).find('i.fa').attr('class', 'fa fa-expand');
+    } else {
+        $('body').addClass('modal-open');
+        $(e).closest('.panel').addClass('fullscreendiv');
+        $(e).find('i.fa').attr('class', 'fa fa-times');
+    }
+
+    return false;
+}
+function shortenMore2(el, height) {
+    $(el).each(function () {
+        let elH = $(this).outerHeight();
+        let elDiv = $(this).parent('.div-shorten-more');
+        if (elDiv.length == 0) {
+            $(this).wrap('<div class="div-shorten-more"></div>');
+            elDiv = $(this).parent('.div-shorten-more');
+        }
+        if (elH > height) {
+            elDiv.css({
+                'height': `${height}px`
+            });
+            elDiv.closest("td").append('<a class="more" style="font-style: italic;">' + $language['congviec.chitiet'] +'</a>');
+            elDiv.closest("td").find('a.more').click(function () {
+                if (elDiv.hasClass('div-shorten-more-all')) {
+                    elDiv.css({
+                        'height': `${height}px`
+                    });
+                    elDiv.removeClass('div-shorten-more-all');
+                    $(this).html($language['congviec.chitiet']);
+                } else {
+                    elDiv.addClass('div-shorten-more-all');
+                    $(this).html($language['bsc.label.anbot']);
+                }
+                return false
+            });
+        } else {
+            $(this).closest("td").find('a.more').remove();
+        }
+
+        if ($(this).prop('innerText').trim() == '') {
+            $(this).css('margin', '0');
+        }
+    });
+}
+function shortenMore(el, height) {
+    $(el).each(function () {
+        let elH = $(this).outerHeight();
+        let elDiv = $(this).parent('.div-shorten-more');
+        if (elDiv.length == 0) {
+            $(this).wrap('<div class="div-shorten-more"></div>');
+            elDiv = $(this).parent('.div-shorten-more');
+        }
+        if (elH > height) {
+            elDiv.css({
+                'height': `${height}px`
+            });
+            $(this).text($(this).text().slice(0, -3) + "...");
+
+        } else {
+        }
+
+        if ($(this).prop('innerText').trim() == '') {
+            $(this).css('margin', '0');
+        }
+    });
+}
+function showchartBaoCaoKPI(elClass) {
+
+    $(elClass).each(function () {
+
+        let id = '';
+
+        if ($(this).attr('data-id') != undefined && $(this).attr('data-id') != null) {
+            id = $(this).attr('data-id');
+        }
+        console.log(id);
+        var datathucte = [];
+        var datachitieu = [];
+        var dataname = [];
+        var tendonvi = '';
+        $(this).find(".tdthucte").each(function () {
+            datathucte.push(parseFloat(($(this).data("giatri"))));
+        })
+        $(this).find(".tdchitieu").each(function () {
+            datachitieu.push(parseFloat(($(this).data("giatri"))));
+        })
+        $(this).find(".tdky").each(function () {
+            dataname.push($(this).data("giatri"));
+            tendonvi = $(this).data("tendonvi");
+        })
+        Highcharts.chart('getChartKPI' + id, {
+            chart: {
+                type: 'line'
+            },
+            title: {
+                text: ''
+            },
+            xAxis: {
+                categories: dataname
+            },
+            yAxis: {
+                title: {
+                    text: tendonvi,
+                    align: 'high'
+                },
+                labels: {
+                    overflow: 'justify'
+                },
+                gridLineWidth: 0
+            },
+            tooltip: {
+                valueSuffix: ' ' + tendonvi
+            },
+
+            series: [{
+                name: $language['bsc.label.thucte'],
+                data: datathucte,
+                color: "#1f4383"
+            },
+            {
+                name: $language['bsc.label.chitieu'],
+                data: datachitieu,
+                color: "#2caffe"
+            }],
+            credits: {
+                enabled: false
+            },
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500,
+                        height: 300
+                    },
+                    chartOptions: {
+                        legend: {
+                            layout: 'horizontal',
+                            align: 'center',
+                            verticalAlign: 'top'
+                        }
+                    }
+                }]
+            }
+
+        });
+
+        $(this).find('.tooltipkpisdd').each(function () {
+            var iditem = $(this).data("itemid");
+            $(this).tooltipster({
+                content: $(".tooltipkpidd" + iditem + "").html(),
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                interactiveTolerance: 50
+            });
+        });
+        $(this).find('.tooltipkpislt').each(function () {
+            var iditem = $(this).data("itemid");
+            $(this).tooltipster({
+                content: $(".tooltipkpilt" + iditem + "").html(),
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                interactiveTolerance: 50
+            });
+        });
+        $(this).find('.tooltipkpiscn').each(function () {
+            var iditem = $(this).data("itemid");
+            $(this).tooltipster({
+                content: $(".tooltipkpicn" + iditem + "").html(),
+                contentAsHTML: true,
+                interactive: true,
+                arrow: true,
+                interactiveTolerance: 50
+            });
+        });
+
+    });
+
+}
+
+
+function KhoiTaoMenuBangDuAn() {
+    /// menu quy trình
+    $.contextMenu({
+        selector: '.rowtable',
+        callback: function (key, options) {
+            if (key == "chitiet") {
+                var mtctidmenu = $(this).attr("data-kehoachparent");
+                var idcongviecmenu = $(this).attr("data-idcongviec");
+                var loaiphutrachmenu = $(this).attr("data-loaiphutrach");
+                ViewChiTietCongViec('', mtctidmenu, '' + loaiphutrachmenu + '', '' + idcongviecmenu + '');
+            }
+            else if (key == "themmoiduan") {
+                var mtctidmenu = $(this).attr("data-kehoachparent");
+                var idcongviecmenu = $(this).attr("data-idcongviec");
+                //XemCongViec('', '' + idcongviecmenu + '', idbophanselect);
+                ThemMoiDuAn('0', 'create', mtctidmenu);
+            }
+            else if (key == "themmoicongviec") {
+                var mtctidmenu = $(this).attr("data-kehoachparent");
+                var idcongviecmenu = $(this).attr("data-idcongviec");
+                XemCongViec('', '' + idcongviecmenu + '', idbophanselect);
+                //ThemMoiDuAn('0', 'create', mtctidmenu);
+            }
+            else if (key == "capnhat") {
+                var mtctidmenu = $(this).attr("data-kehoachparent");
+                var idcongviecmenu = $(this).attr("data-idcongviec");
+                ThemMoiDuAn('' + idcongviecmenu + '', 'update', mtctidmenu);
+            }
+            else if (key == "xoa") {
+                XoaDuAn($(this).attr("data-idcongviec"));
+            }
+        },
+        items: {
+            "chitiet": {
+                name: "<i class='fa fa-tasks text-info'></i> " + $language['congviec.chitiet'], icon: "", visible: function (key, opt) {
+                    return true;
+                }
+            },
+            "themmoiduan": {
+                name: "<i class='fa fa-plus text-primary'></i> " + $language['bsc.label.taoduan'], icon: "", visible: function (key, opt) {
+                    return true;
+                }
+            },
+            "themmoicongviec": {
+                name: "<i class='fa fa-plus text-primary'></i> " + $language['bsc.btn.taocongviec'], icon: "", visible: function (key, opt) {
+                    return true;
+                }
+            },
+            "capnhat": {
+                name: "<i class='fa fa-pencil-square-o text-primary'></i> " + $language['bsc.btn.capnhat'], icon: "", visible: function (key, opt) {
+                    return $(this).attr('data-menuChinhSua') === "True";
+                }
+            },
+            "xoa": {
+                name: "<i class='fa fa-times text-danger'></i> " + $language['bsc.btn.xoa'], icon: "", visible: function (key, opt) {
+                    return $(this).attr('data-menuXoa') === "True";
+                }
+            },
+
+        }
+    });
+}

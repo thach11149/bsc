@@ -1,0 +1,2723 @@
+﻿let congViecID = 0;
+let isSewSelected = null;
+function ViewChiTietCongViec(idphutrach, idmuctieu, phutrach, idduan) {
+    var convertedDateRange = $(".datepickerbsc").val().replace(/\//g, '-').replace(' - ', '-');
+    if ($(".selecttansuat").length > 0) {
+        window.open("/cong-viec-du-an/" + idbophanselect + "/" + idmuctieu + "/" + phutrach + "/" + idduan + "/" + convertedDateRange + "/" + $(".selecttansuat").val());
+    }
+    else {
+        window.open("/cong-viec-du-an/" + idbophanselect + "/" + idmuctieu + "/" + phutrach + "/" + idduan + "/" + convertedDateRange);
+    }
+    
+}
+function XemCongViec(id, idDuAn, selbophan) {
+   
+    congViecID = id;
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/ChiTiet',
+        data: { id: id, datechoice: $(".datepickerbsc").val(), idduan: idDuAn, selectbophan: selbophan, },
+        type: 'GET',
+        success: function (data) {
+            $('#myModalChiTietDuAn .modal-content').html(data);
+            $('#myModalChiTietDuAn').modal('show');
+
+            KhoiTaoChiTieuChiTiet();
+            KhoiTaoPhuTrachHoTroChiTiet();
+            KhoiTaoNganSachChiTiet();
+            KhoiTaoMucTieuDuAnChiTiet();
+            initDateTaskDuAn();
+            KhoiTaoTiTrongChiTiet();
+            if (id != undefined && id != "") {
+                autoDivideTiTrongNgangCapChiTiet($("#txtParentIDChiTiet").val());
+            }
+
+            $("div[contenteditable='true']").each(function () {
+                CKEDITOR.inline(this, {
+                    editorplaceholder: $language['bsc.label.vuilongnhapnoidung']
+                });
+            });
+           
+            autoheighttextthaoluan();
+
+            if ($('.box-kehoach-congviec').length == 0) {
+                RemoveLoading();
+                return false;
+            }
+            $('#myModalChiTietDuAn .modal-body #profile[data-disabled="true"] input').prop('disabled', true);
+            $('#myModalChiTietDuAn .modal-body #profile[data-disabled="true"] textarea').prop('disabled', true);
+            $('#myModalChiTietDuAn .modal-body #profile[data-disabled="true"] .listFiles .btn-group').remove();
+
+            $('#myModalChiTietDuAn .modal-body #tabngansach[data-disabled="true"] .tablengansach .btnthemmoi').hide();
+            $('#myModalChiTietDuAn .modal-body #tabngansach[data-disabled="true"] input').prop('disabled', true);
+            $('#myModalChiTietDuAn .modal-body #tabngansach[data-disabled="true"] textarea').prop('disabled', true);
+            $('#myModalChiTietDuAn .modal-body #tabngansach[data-disabled="true"] .listFiles .btn-group').remove();
+
+            var p = $(".today");
+            if (p.length > 0) {
+                var position = p.position();
+                $("#boxChiTieuTheoNgay").animate({ scrollLeft: position.left }, 100);
+            };
+
+            $('.textnoidung').each(function () {
+                $(this).css("height", "auto");
+            }).on('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            $('.tablebsc .maskmoney').onlyNumber({
+                digits: 3,
+                allowDecimalPadding: false
+            });
+            $(".tablebsc .maskmoney,.tablebsc .textnoidung").keyup(function () {
+                $(this).parents("tr").find(".btnLuuBaoCao").show();
+            });
+            $(".tablebsc .maskmoney,.tablebsc .textnoidung").bind("paste", function (e) {
+                $(this).parents("tr").find(".btnLuuBaoCao").show();
+            });
+            LoadJsonNhanVien(id);
+            LoadThaoLuan();
+            LoadHistory(true);
+            $('.congviec-sub-form .congviec-sub-form-name .form-control').focus(function () {
+                $(this).closest('.congviec-sub-form').addClass('congviec-sub-form-active');
+                if ($(this).attr('name') == 'txtChat') {
+                    let elRemoveReply = $(`.congviec-thaoluan-item-rely .congviec-sub-form`);
+                    elRemoveReply.remove();
+                }
+            });
+
+            $('textarea[name="txtChat"]').sew({ values: jsonNhanVienCongViecs });
+            $('textarea[name="txtChat"]').keyup(function (e) {
+                e.preventDefault();
+                var code = (e.keyCode ? e.keyCode : e.which);
+                if ((code == 13 || code === "Enter") && !e.shiftKey) {
+                    if (isSewSelected) {
+                        isSewSelected = false;
+                    } else {
+                        //sendThaoLuan();
+                    }
+                    return false;
+                }
+            });
+            $('.txtDonViChiTiet').each(function () {
+                const inputLength = $('.txtDonViChiTiet option:selected').text().length;
+                $(this).css('width', (inputLength + 0.5) + 'ch');
+            })
+            $(".txtDonViChiTiet").change(function () {
+                const inputLength = $('.txtDonViChiTiet option:selected').text().length;
+                $(this).css('width', (inputLength + 0.5) + 'ch');
+            });
+
+            $('.txtHinhThucChiTiet').each(function () {
+                const inputLength = $('.txtHinhThucChiTiet option:selected').text().length;
+                $(this).css('width', (inputLength + 0.5) + 'ch');
+            })
+            $(".txtHinhThucChiTiet").change(function () {
+                const inputLength = $('.txtHinhThucChiTiet option:selected').text().length;
+                $(this).css('width', (inputLength + 0.5) + 'ch');
+            });
+
+            RemoveLoading();
+            setTimeout(function () {
+                var heightheader = $("#myModalChiTietDuAn .modal-header").outerHeight();
+                var heightfooter = $("#myModalChiTietDuAn .modal-footer").outerHeight();
+                $("#myModalChiTietDuAn .modal-body").css("height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+                $("#myModalChiTietDuAn .modal-body").css("max-height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+            }, 100);
+            setTimeout(function () {
+                isLoadFirst = false;
+            }, 1000);
+            checkAlertCongViecChiTiet();
+
+            $('.breadcrumb-item:not(.tooltipstered)').tooltipster({
+                interactive: true,
+                arrow: false,
+                theme: 'tooltipster-light',
+                position: 'bottom',
+                interactiveTolerance: 50
+            });
+            KhoiTaoTableNganSach();
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loitai']);
+        }
+    });
+    return false;
+}
+//#region Khởi tạo chi tiết
+function KhoiTaoChiTieuChiTiet() {
+
+    $('.divChiTieu').click(function (event) {
+        event.stopPropagation();
+        $('.formChiTieu').show();
+    });
+    $('.formChiTieu').on("click", function (event) {
+        event.stopPropagation();
+    });
+
+
+    $('.txtChiTieuChiTiet').onlyNumber({
+        digits: 3,
+        allowDecimalPadding: false
+    });
+    $('.txtChiTieuChiTiet').keyup(function () {
+        checkAlertCongViecChiTiet();
+    });
+
+    $("#txtDonViChiTiet").select2({
+        width: 100,
+        containerCssClass: 'select2customcontainer',
+        dropdownCssClass: 'select2custom'
+    });
+    $(".txtTanSuatChiTiet").select2({
+        width: 80,
+        containerCssClass: 'select2customcontainer',
+        dropdownCssClass: 'select2custom'
+    });
+    $(".txtTanSuatChiTiet").change(function () {
+        checkAlertCongViecChiTiet();
+    });
+}
+function KhoiTaoPhuTrachHoTroChiTiet() {
+    initAliasName();
+
+    //$("#myModalChiTietDuAn .divWrapPhuTrach .spantennguoihotro").click(function () {
+    //    LoadNhanVienSelect($('[name="NguoiPhuTrachID"]'), null, "pt", "", true);
+    //});
+
+    //$("#myModalChiTietDuAn .divWrapPhuTrach .spantennguoihotro").click(function () {
+    //    LoadNhanVienSelect($('[name="NguoiPhuTrachIDParent"]'), $('[name="NguoiHoTroIDParent"]'), "pt", "", true);
+    //});
+    //$("#myModalChiTietDuAn .divWrapHoTro .spantennguoihotro").click(function () {
+    //    LoadNhanVienSelect($('[name="NguoiPhuTrachIDParent"]'), $('[name="NguoiHoTroIDParent"]'), "ht", "", true);
+    //});
+    //$(".divNhanSuPhuTrachChiTiet").click(function () {
+    //    LoadNhanVienPhuTrachSelectChiTiet($(this), '');
+    //});
+    //$(".divWrapHoTroChiTiet").click(function () {
+    //    LoadNhanVienHoTroSelectChiTiet($(this), '');
+    //});
+}
+function KhoiTaoNganSachChiTiet() {
+    $('#myModalChiTietDuAn #txtNganSachChiTiet').onlyNumber({
+        digits: 3,
+        allowDecimalPadding: false
+    });
+    $('#myModalChiTietDuAn #txtNganSachChiTiet').each(function () {
+        $(this).onlyNumber({
+            digits: 3,
+            allowDecimalPadding: false
+        });
+        const inputLength = $(this).val().length;
+        $(this).css('width', (inputLength + 0.5) + 'ch');
+        $(this).keyup(function () {
+            const inputLength = $(this).val().length;
+            $(this).css('width', (inputLength + 0.5) + 'ch');
+            var thisvalngansach = NVParseFloat($(this).val());
+            let maxval = 1000000000000000; //1 tram trieu ti
+            if (thisvalngansach >= maxval) {
+                Notify('warning', $language['bsc.msg.vuotgioihan']);
+                $(this).val(maxval - 1);
+                thisvalngansach = maxval - 1;
+            }
+            var nganSachConLai = calNganSachConLaiNgangCapChiTiet(this);
+            if (thisvalngansach > nganSachConLai) {
+                $(this).val(addComma(nganSachConLai.toFixed(0)));
+            }
+            else if (thisvalngansach < 0) {
+                $(this).val(0);
+            }
+            if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+                var nganSachCon = calNganSachConLaiConChiTiet(this);
+                if (thisvalngansach < nganSachCon) {
+                    $(this).closest('.WrapThoiGian').addClass("errorngansach");
+                    $(this).before('<i class="errorngansach fa fa-exclamation-circle" title="Ngân sách không thể nhỏ hơn ' + nganSachCon + '" style="top:unset;"></i>');
+                    $('i.errorngansach:not(.tooltipstered)').tooltipster({
+                        contentAsHTML: true,
+                        interactive: true,
+                        arrow: true,
+                        theme: 'tooltipster-light',
+                        position: 'bottom',
+                        interactiveTolerance: 50
+                    });
+                }
+                else {
+                    $(this).closest('.WrapThoiGian').removeClass("errorngansach");
+                    $(this).closest('.WrapThoiGian').find("i").remove();
+                }
+            }
+
+        });
+    })
+    if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+        TooltipNganSach();
+        let elProgressNganSach = $(".progressngansach");
+        elProgressNganSach.on("click", function (e) {
+            $(this).hide();
+            $(".groupngansach").show();
+            $(this).closest(".divInfoTienDo").find("input").focus();
+        });
+        $('#myModalChiTietDuAn #txtNganSachChiTiet').focusout(function () {
+            let row = $(this).closest('.divInfoTienDo');
+            var thisvalngansach = NVParseFloat($(this).val());
+            let progresstemp = $(".progressngansach");
+            let ngansachthuctetemp = NVParseFloat(progresstemp.attr("data-ngansachthucte"));
+            let phantramngansach = thisvalngansach != 0 ? (ngansachthuctetemp / thisvalngansach) * 100 : 0;
+            progresstemp.attr("title", progresstemp.attr("data-ngansachthucte") + "/" + $(this).val());
+            progresstemp.find(".progress-bar").css("width", phantramngansach + "%");
+            progresstemp.find("p").text(phantramngansach.toFixed(2) + "%");
+            if (progresstemp.hasClass('tooltipstered')) {
+                progresstemp.tooltipster('content', progresstemp.attr("data-ngansachthucte") + "/" + $(this).val());
+            }
+            else {
+                progresstemp.tooltipster({
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    theme: 'tooltipster-light',
+                    position: 'bottom',
+                    interactiveTolerance: 50
+                });
+            }
+            $(this).hide();
+            $(".groupngansach").hide();
+            progresstemp.show();
+        });
+    }
+
+}
+function KhoiTaoMucTieuDuAnChiTiet() {
+    $('#templateMucTieuPhuTrach div').each(function () {
+        var id = $(this).data('idmuctieuphutrach');
+        var name = $(this).data('tenmuctieuphutrach');
+        $('#selMucTieuDuAn').append($('<option>', {
+            value: id,
+            text: name
+        }));
+    });
+    $("#selMucTieuDuAn").val($("#txtMTIDChiTiet").val());
+    $("#selMucTieuDuAn").select2({
+        width: '100%',
+        containerCssClass: 'select2customcontainer',
+        dropdownCssClass: 'select2custom'
+    });
+    $("#selMucTieuDuAn").change(function () {
+        $("#selDuAn").html("");
+        let hasIDDuAn = false;
+        $('#templateDuAnPhuTrach div[data-idmuctieuphutrach=' + $("#selMucTieuDuAn").val() + ']').each(function () {
+            var id = $(this).data('idduanphutrach');
+            var name = $(this).data('tenduanphutrach');
+            if (id == $("#txtDAIDChiTiet").val()) {
+                hasIDDuAn = true;
+            }
+            // Tạo option và thêm vào select
+            $('#selDuAn').append($('<option>', {
+                value: id,
+                text: name
+            }));
+        });
+        if (hasIDDuAn) {
+            $("#selDuAn").val($("#txtDAIDChiTiet").val());
+        }
+        else {
+            $('#selDuAn').prepend($('<option>', {
+                value: "",
+                text: "Chọn dự án",
+                selected: true
+            }));
+        }
+        $("#selDuAn").select2({
+            width: '100%',
+            containerCssClass: 'select2customcontainer',
+            dropdownCssClass: 'select2custom'
+        });
+        LoadIDNhanSuDuAn($("#selDuAn").val());
+        LoadCongViecTheoDuAn($(this).val());
+    });
+
+    $('#templateDuAnPhuTrach div[data-idmuctieuphutrach=' + $("#txtMTIDChiTiet").val() + ']').each(function () {
+        var id = $(this).data('idduanphutrach');
+        var name = $(this).data('tenduanphutrach');
+        // Tạo option và thêm vào select
+        $('#selDuAn').append($('<option>', {
+            value: id,
+            text: name
+        }));
+    });
+
+    $("#selDuAn").val($("#txtDAIDChiTiet").val());
+
+    $("#selDuAn").select2({
+        width: '100%',
+        containerCssClass: 'select2customcontainer',
+        dropdownCssClass: 'select2custom'
+    });
+
+    $("#selDuAn").change(function () {
+        $(this).val();
+        LoadIDNhanSuDuAn($(this).val());
+        if ($("#IDCongViecModal").val() == undefined || $("#IDCongViecModal").val() == "") {
+            LoadCongViecTheoDuAn($(this).val());
+        }
+
+    });
+
+    if ($("#IDCongViecModal").val() == undefined || $("#IDCongViecModal").val() == "") {
+        LoadCongViecTheoDuAn($("#selDuAn").val());
+    }
+    if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+        $("#selMucTieuDuAn").prop('disabled', true);
+        $("#selDuAn").prop('disabled', true);
+    }
+}
+
+function LoadIDNhanSuDuAn(idduan) {
+    if (idduan != undefined && idduan != "") {
+        $('#templateDuAnPhuTrach div[data-idduanphutrach=' + idduan + ']').each(function () {
+            var nhansuduan = $(this).data('nhansuduan');
+            $("#DanhSachNhanSuDuAnID").val(nhansuduan);
+        });
+
+    }
+    else {
+        $("#DanhSachNhanSuDuAnID").val('');
+    }
+}
+function LoadCongViecTheoDuAn(idduan) {
+    $.ajax({
+        url: '/CongViecDuAn/_CongViecTheoDuAn',
+        cache: false,
+        type: 'GET',
+        data: { id: idduan },
+        success: function (data) {
+            $('#templateCongViecDuAnChiTiet').html(data);
+            $(`[name="txtParentIDChiTiet"]`).val(idduan);
+            $(".divparentcongviec").remove();
+            $('.txtTiTrongChiTiet').prop('disabled', true);
+            $('.txtTiTrongChiTiet').val(100);
+            $('.txtTiTrongChiTiet').addClass("maintitrong");
+            $('#myModalChiTietDuAn #txtNganSachChiTiet').val("0");
+            $('#templateCongViecDuAnChiTiet div[data-idcheck="' + idduan + '"]').each(function () {
+                $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-startparent", $(this).attr('data-ngaybatdau'));
+                $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-endparent", $(this).attr('data-ngayketthuc'));
+                var dtnow = new Date();
+                let startdate = $(this).attr('data-ngaybatdau');
+                let enddate = $(this).attr('data-ngayketthuc');
+                const firstDay = moment(startdate, "DD/MM/YYYY");
+                const lastDay = moment(enddate, "DD/MM/YYYY");
+                if (dtnow >= firstDay && dtnow <= lastDay) {
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                    }
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                    }
+                    var textDate = dtnow.getDate() + "/" + (dtnow.getMonth() + 1) + "/" + dtnow.getFullYear();
+                    var dateRutGon = rutGonDate(moment(textDate, "DD/MM/YYYY"), moment(textDate, "DD/MM/YYYY"));
+
+
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val(textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-start", textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-end", textDate);
+                    $(`[name="txtNgayChoice"]`).each(function () {
+                        $(this).unbind("click");
+                        let parentDiv = $(this).closest(".divNgayChoice");
+                        let dateStart = parentDiv.find('.CalendarNgayChoiceStart');
+                        let dateEnd = parentDiv.find('.CalendarNgayChoiceEnd');
+                        dateStart.unbind('dp.change');
+                        dateEnd.unbind('dp.change');
+                    });
+                    initDateTaskDuAn();
+                }
+                else {
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                    }
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                    }                 
+                   
+                    var dateRutGon = rutGonDate(moment(startdate, "DD/MM/YYYY"), moment(startdate, "DD/MM/YYYY"));
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val(startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-start", startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-end", startdate);
+
+                    
+                    $(".tablecongvieccon tbody tr").each(function () {
+                        if ($(this).find('.CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                            $(this).find('.CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                        }
+                        if ($(this).find('.CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                            $(this).find('.CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                        }      
+                        $(this).find('[name="txtNgayChoice"]').attr("data-startparent", startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-endparent", startdate);
+                        $(this).find('[name="txtNgayChoice"]').text(dateRutGon);
+                        $(this).find('[name="txtNgayChoiceStart"]').val(startdate);
+                        $(this).find('[name="txtNgayChoiceEnd"]').val(startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-start", startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-end", startdate);
+                    });
+
+                    $(`[name="txtNgayChoice"]`).each(function () {
+                        $(this).unbind("click");
+                        let parentDiv = $(this).closest(".divNgayChoice");
+                        let dateStart = parentDiv.find('.CalendarNgayChoiceStart');
+                        let dateEnd = parentDiv.find('.CalendarNgayChoiceEnd');
+                        dateStart.unbind('dp.change');
+                        dateEnd.unbind('dp.change');
+                    });
+                    initDateTaskDuAn();
+                }
+            });
+           
+            
+            
+            checkAlertCongViecChiTiet();
+        },
+        error: function (a, b, c) {
+        }
+    });
+}
+
+function KhoiTaoTiTrongChiTiet() {
+    $('.txtTiTrongChiTiet').each(function () {
+        $(this).onlyNumber({
+            digits: 2,
+            allowDecimalPadding: false
+        });
+        $(this).keyup(function () {
+            var thisvaltitrong = NVParseFloat($(this).val());
+            let maxval = 100;
+            if (thisvaltitrong >= maxval) {
+                $(this).val(maxval);
+            }
+
+            var titrongConLai = calTiTrongConLaiNgangCapChiTiet(this);
+            if (thisvaltitrong > titrongConLai) {
+                $(this).val(addComma(titrongConLai.toFixed(2)));
+            }
+
+            var tiTrongCon = calTiTrongConLaiConChiTiet(this);
+            if (thisvaltitrong < tiTrongCon) {
+                $(this).addClass("errortitrong");
+                $(this).before('<i style="left: -4px;" class="errortitrong fa fa-exclamation-circle" title="Tỉ trọng không thể nhỏ hơn ' + tiTrongCon + '"></i>');
+                $('i.errortitrong:not(.tooltipstered)').tooltipster({
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    theme: 'tooltipster-light',
+                    position: 'bottom',
+                    interactiveTolerance: 50
+                });
+            }
+            else {
+                $(this).removeClass("errortitrong");
+                $(this).closest("div").find("i").remove();
+            }
+
+            if (thisvaltitrong < 0) {
+                $(this).val(0);
+            }
+
+
+        });
+    })
+    $('.txtTiTrongChiTiet').focusout(function () {
+        let parentID = $(`[name="txtParentIDChiTiet"]`).val();
+        if ($(this).val() != undefined && $(this).val() != "") {
+            if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').attr("data-titrongcheck", $(this).val());
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').attr("data-titrongcalcheck", "");
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').addClass("maintitrong");
+            }
+            else {
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').attr("data-titrongcheck", $(this).val());
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').attr("data-titrongcalcheck", "");
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').addClass("maintitrong");
+            }
+            $(this).addClass("maintitrong");
+            autoDivideTiTrongNgangCapChiTiet(parentID);
+            if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+                autoDivideTiTrongNgangCapChiTiet($("#IDCongViecModal").val());
+            }
+        }
+        else {
+            if ($("#IDCongViecModal").val() != undefined && $("#IDCongViecModal").val() != "") {
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').attr("data-titrongcalcheck", $(this).val());
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').attr("data-titrongcheck", "");
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="' + $("#IDCongViecModal").val() + '"]').removeClass("maintitrong");
+            }
+            else {
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').attr("data-titrongcalcheck", $(this).val());
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').attr("data-titrongcheck", "");
+                $('#templateCongViecDuAnChiTiet div[data-idcheck="tempcongviec"]').removeClass("maintitrong");
+            }
+            $(this).removeClass("maintitrong");
+            autoDivideTiTrongNgangCapChiTiet(parentID);
+        }
+    });
+    if ($("#txtParentIDChiTiet").val() != undefined && $("#txtParentIDChiTiet").val() != "" && $("#txtParentIDChiTiet").val() != $("#txtDAIDChiTiet").val()) {
+        $('.txtTiTrongChiTiet').prop('disabled', false);
+        $('.txtTiTrongChiTiet').remove("maintitrong");
+    }
+    else {
+        $('.txtTiTrongChiTiet').prop('disabled', true);
+        $('.txtTiTrongChiTiet').addClass("maintitrong");
+    }
+}
+//#endregion
+
+
+function calNganSachConLaiNgangCapChiTiet(e) {
+
+    let id = $(`[name="IDCongViecModal"]`).val();
+    let parentID = $(`[name="txtParentIDChiTiet"]`).val();
+    let nganSachCha = NVParseFloat($('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]').attr("data-ngansachcheck"));
+    let nganSachNgangCap = 0;
+    $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not([data-idcheck="' + id + '"]').each(function () {
+        nganSachNgangCap += NVParseFloat($(this).attr('data-ngansachcheck'));
+    });
+
+    return nganSachCha - nganSachNgangCap;
+}
+function calNganSachConLaiConChiTiet(e) {
+    let id = $(`[name="IDCongViecModal"]`).val();
+    let nganSachCon = 0;
+    $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + id + '"]').each(function () {
+        nganSachCon += NVParseFloat($(this).attr('data-ngansachcheck'));
+    });
+    return nganSachCon;
+}
+
+function showDropDownParentChiTiet(id, idParent, idDuAn, e) {
+    let elParent = $(e);
+    var listidlienquan = $("#templateDuAnPhuTrach").attr("data-idcongviecconlienquan");
+
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/LoadParent',
+        cache: false,
+        data: { idDuAn: $("#selDuAn").val(), idCongViec: id, listIDParent: listidlienquan },
+        type: 'POST',
+        success: function (data) {
+            RemoveLoading();
+            $(`.box-duancongviec-parent`).html(data);
+            $('.box-duancongviec-parent').attr('data-id', id);
+            let datatree = 'cvParent';
+            KhoiTaoTreeParentCongViecChiTiet(datatree, elParent, idParent);
+            $(".divtreebophan[data-tree=" + datatree + "]").on("click", function (event) {
+                event.stopPropagation();
+            });
+            $(".divtreebophan[data-tree=" + datatree + "]").show();
+        }, error: function () {
+            RemoveLoading();
+        }
+    });
+
+
+}
+function KhoiTaoTreeParentCongViecChiTiet(datatree, elParent, idParent) {
+    var idparentselect = "";
+    $('.titleTree[data-tree=' + datatree + ']').click(function (event) {
+        event.stopPropagation();
+        $('.divtreebophan[data-tree=' + datatree + ']').show();
+    });
+    $('.divtreebophan[data-tree=' + datatree + ']').on("click", function (event) {
+        event.stopPropagation();
+    });
+
+    ///init and change event node
+    $(".divcontentTree[data-tree=" + datatree + "]").on('changed.jstree', function (e, data) {
+        var i, j, r = [], rowid = [];
+        for (i = 0, j = data.selected.length; i < j; i++) {
+            let rowNode = data.instance.get_node(data.selected[i]);
+            r.push(rowNode.text);
+            rowid.push(rowNode.id);
+        }
+        idparentselect = rowid.join(', ');
+
+        if ($(`[name="txtParentIDChiTiet"]`).val() != idparentselect) {
+            $('#templateCongViecDuAnChiTiet').find("div[data-idcheck='tempcongviec']").remove();
+            $('#templateCongViecDuAnChiTiet div').each(function () {
+                $(this).attr("data-titrongcheck", $(this).attr("data-titrongcheckdefault"));
+                $(this).attr("data-titrongcalcheck", $(this).attr("data-titrongcalcheckdefault"));
+                $(this).attr("class", $(this).attr("data-classdefault"));
+            });
+            $(`[name="txtParentIDChiTiet"]`).val(idparentselect);
+            if (idparentselect != $("#txtDAIDChiTiet").val()) {
+                var parenttext = r.join(', ');
+                $(".listUlParent").html(`<div class="divparentcongviec">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                      <li class="breadcrumb-item" title="${parenttext}"><a href="#" class="truncated">${parenttext}</a></li>
+                                </ol>
+                            </nav>
+                        </div>`);
+                $('.txtTiTrongChiTiet').removeClass("maintitrong");
+                $('#templateCongViecDuAnChiTiet').append(`<div data-idcheck="tempcongviec" data-parentidcheck="` + idparentselect + `" data-ngansachcheck="0" data-titrongcheck="" data-titrongcalcheck=""></div>`);
+                autoDivideTiTrongNgangCapChiTiet(idparentselect);
+            }
+            else {
+                $(".divparentcongviec").remove();
+                $('.txtTiTrongChiTiet').prop('disabled', true);
+                $('.txtTiTrongChiTiet').val(100);
+                $('.txtTiTrongChiTiet').addClass("maintitrong");
+            }
+            $('#myModalChiTietDuAn #txtNganSachChiTiet').val("0");
+            $('#templateCongViecDuAnChiTiet div[data-idcheck="' + idparentselect + '"]').each(function () {
+                $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-startparent", $(this).attr('data-ngaybatdau'));
+                $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-endparent", $(this).attr('data-ngayketthuc'));
+                var dtnow = new Date();
+                let startdate = $(this).attr('data-ngaybatdau');
+                let enddate = $(this).attr('data-ngayketthuc');
+                const firstDay = moment(startdate, "DD/MM/YYYY");
+                const lastDay = moment(enddate, "DD/MM/YYYY");
+                if (dtnow >= firstDay && dtnow <= lastDay) {
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                    }
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                    }
+                    var textDate = dtnow.getDate() + "/" + (dtnow.getMonth() + 1) + "/" + dtnow.getFullYear();
+                    var dateRutGon = rutGonDate(moment(textDate, "DD/MM/YYYY"), moment(textDate, "DD/MM/YYYY"));
+
+
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val(textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-start", textDate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-end", textDate);
+                    $(`[name="txtNgayChoice"]`).each(function () {
+                        $(this).unbind("click");
+                        let parentDiv = $(this).closest(".divNgayChoice");
+                        let dateStart = parentDiv.find('.CalendarNgayChoiceStart');
+                        let dateEnd = parentDiv.find('.CalendarNgayChoiceEnd');
+                        dateStart.unbind('dp.change');
+                        dateEnd.unbind('dp.change');
+                    });
+                    initDateTaskDuAn();
+                }
+                else {
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                    }
+                    if ($('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                        $('.divNgayChoiceDuAn .CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                    }
+
+                    var dateRutGon = rutGonDate(moment(startdate, "DD/MM/YYYY"), moment(startdate, "DD/MM/YYYY"));
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val(startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-start", startdate);
+                    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-end", startdate);
+
+
+                    $(".tablecongvieccon tbody tr").each(function () {
+                        if ($(this).find('.CalendarNgayChoiceStart').data('DateTimePicker') !== undefined) {
+                            $(this).find('.CalendarNgayChoiceStart').data("DateTimePicker").destroy();
+                        }
+                        if ($(this).find('.CalendarNgayChoiceEnd').data('DateTimePicker') !== undefined) {
+                            $(this).find('.CalendarNgayChoiceEnd').data("DateTimePicker").destroy();
+                        }
+                        $(this).find('[name="txtNgayChoice"]').attr("data-startparent", startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-endparent", startdate);
+                        $(this).find('[name="txtNgayChoice"]').text(dateRutGon);
+                        $(this).find('[name="txtNgayChoiceStart"]').val(startdate);
+                        $(this).find('[name="txtNgayChoiceEnd"]').val(startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-start", startdate);
+                        $(this).find('[name="txtNgayChoice"]').attr("data-end", startdate);
+                    });
+
+                    $(`[name="txtNgayChoice"]`).each(function () {
+                        $(this).unbind("click");
+                        let parentDiv = $(this).closest(".divNgayChoice");
+                        let dateStart = parentDiv.find('.CalendarNgayChoiceStart');
+                        let dateEnd = parentDiv.find('.CalendarNgayChoiceEnd');
+                        dateStart.unbind('dp.change');
+                        dateEnd.unbind('dp.change');
+                    });
+                    initDateTaskDuAn();
+                }
+            });
+            //$('#templateCongViecDuAnChiTiet div[data-idcheck="' + idparentselect + '"]').each(function () {
+            //    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-startparent", $(this).attr('data-ngaybatdau'));
+            //    $('.divNgayChoiceDuAn [name="txtNgayChoice"]').attr("data-endparent", $(this).attr('data-ngayketthuc'));
+
+            //    var dtnow = new Date();
+            //    let startdate = $(this).attr('data-ngaybatdau');
+            //    let enddate = $(this).attr('data-ngayketthuc');
+            //    const firstDay = moment(startdate, "DD/MM/YYYY");
+            //    const lastDay = moment(enddate, "DD/MM/YYYY");
+            //    if (dtnow >= firstDay && dtnow <= lastDay) {
+            //        var textDate = dtnow.getDate() + "/" + (dtnow.getMonth() + 1) + "/" + dtnow.getFullYear();
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val(textDate);
+
+            //        var dateRutGon = rutGonDate(moment(textDate, "DD/MM/YYYY"), moment(textDate, "DD/MM/YYYY"));
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+            //    }
+            //    else {
+            //        var dateRutGon = rutGonDate(moment(startdate, "DD/MM/YYYY"), moment(startdate, "DD/MM/YYYY"));
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoice"]').text(dateRutGon);
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+            //        $('.divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val(textDate);
+            //    }
+            //});
+            $('.divtreebophan[data-tree=' + datatree + ']').hide();
+            initDateTaskDuAn();
+            checkAlertCongViecChiTiet();
+        }
+    }).jstree({
+        "search": {
+            "show_only_matches": true
+        },
+        "plugins": ["search"],
+        core: {
+            multiple: false
+        }
+    });
+
+
+    if ($(`[name="txtParentIDChiTiet"]`).val() == undefined || $(`[name="txtParentIDChiTiet"]`).val() == "") {
+        $(".divcontentTree[data-tree=" + datatree + "]").jstree('open_node', $(".divcontentTree[data-tree=" + datatree + "] .jstree-node:first-child").attr("id"));
+    }
+    else {
+        $(".divcontentTree[data-tree=" + datatree + "]").jstree('open_node', $(".divcontentTree[data-tree=" + datatree + "] .jstree-node:first-child").attr("id"));
+        $(".divcontentTree[data-tree=" + datatree + "]").jstree('select_node', $(`[name="txtParentIDChiTiet"]`).val(), true);
+    }
+    ///Search tree
+    var to = false;
+    $(".searchtree[data-tree=" + datatree + "]").keyup(function () {
+        if (to) { clearTimeout(to); }
+        to = setTimeout(function () {
+            var v = $(".searchtree[data-tree=" + datatree + "]").val();
+            $(".divcontentTree[data-tree=" + datatree + "]").jstree(true).search(v);
+        }, 250);
+    });
+}
+function autoDivideTiTrongNgangCapChiTiet(parentID) {
+    if ($('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]').length > 0) {
+        let tiTrongCha = 0;
+        var parentCheck = $('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]');
+        if (parentCheck.hasClass("maintitrong")) {
+            tiTrongCha = NVParseFloat($('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]').attr("data-titrongcheck"));
+        }
+        else {
+            tiTrongCha = NVParseFloat($('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]').attr("data-titrongcalcheck"));
+        }
+        let tiTrongConMain = 0;
+        $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"].maintitrong').each(function () {
+            tiTrongConMain += NVParseFloat($(this).attr('data-titrongcheck'));
+        });
+
+        let titrongConLai = tiTrongCha - tiTrongConMain;
+        let lengthConLai = $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not(.maintitrong)').length;
+        let titrongtuchia = NVParseFloat((lengthConLai > 0 ? (titrongConLai / lengthConLai) : 0).toFixed(2));
+        let total = 0;
+        $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not(.maintitrong)').each(function () {
+            var id = $(this).attr('data-idcheck');
+            $(this).attr('data-titrongcalcheck', titrongtuchia);
+            if (id == "tempcongviec" || id == $("#IDCongViecModal").val()) {
+                $(`[name="txtTiTrongChiTiet"]`).val(titrongtuchia);
+            }
+
+            total += titrongtuchia;
+            if ($('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + id + '"]').length > 0) {
+                autoDivideTiTrongNgangCapChiTiet(id);
+            }
+        });
+        if (total != titrongConLai) {
+            var valuelast = parseFloat($('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not(.maintitrong)').last().attr('data-titrongcalcheck'));
+            var id = $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not(.maintitrong)').last().attr('data-idcheck');
+            var giatrichildlast = (valuelast + parseFloat(titrongConLai - total)).toFixed(2);
+            $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not(.maintitrong)').last().attr('data-titrongcalcheck', giatrichildlast);
+           
+            if (id == "tempcongviec" || id == $("#IDCongViecModal").val()) {
+                $(`[name="txtTiTrongChiTiet"]`).val(giatrichildlast);
+            }
+            if ($('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + id + '"]').length > 0) {
+
+                autoDivideTiTrongNgangCapChiTiet(id);
+            }
+        }
+        $('.txtTiTrongChiTiet').prop('disabled', false);
+    }
+   
+}
+function calTiTrongConLaiNgangCapChiTiet(e) {
+    let parentID = $(`[name="txtParentIDChiTiet"]`).val();
+    let id = $("[name='IDCongViecModal']").val();
+    let tiTrongCha = 0;
+    var parentCheck = $('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]');
+    if (parentCheck.hasClass("maintitrong")) {
+        tiTrongCha = NVParseFloat($('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]').attr("data-titrongcheck"));
+    }
+    else {
+        tiTrongCha = NVParseFloat($('#templateCongViecDuAnChiTiet div[data-idcheck="' + parentID + '"]').attr("data-titrongcalcheck"));
+    }
+    let tiTrongNgangCap = 0;
+    $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + parentID + '"]:not([data-idcheck="' + id + '"]').each(function () {
+        if ($(this).hasClass("maintitrong")) {
+            tiTrongNgangCap += NVParseFloat($(this).attr('data-titrongcheck'));
+        }
+    });
+    
+    return tiTrongCha - tiTrongNgangCap;
+}
+function calTiTrongConLaiConChiTiet(e) {
+    let id = $("[name='IDCongViecModal']").val();
+    let tiTrongCon = 0;
+    $('#templateCongViecDuAnChiTiet div[data-parentidcheck="' + id + '"]').each(function () {
+        if ($(this).hasClass("maintitrong")) {
+            tiTrongCon += NVParseFloat($(this).attr('data-titrongcheck'));
+        }
+    });
+    return tiTrongCon;
+}
+
+//#region Thảo luận
+function LoadThaoLuan(scrollBot, sendAllClient) {
+    $.ajax({
+        url: '/CongViecDuAn/LoadThaoLuan',
+        cache: false,
+        type: 'GET',
+        data: { id: congViecID },
+        success: function (data) {
+            $('.congviec-thaoluans').html(data);
+            if (scrollBot != null && scrollBot) {
+                setTimeout(function () {
+                    //$('.app-main__inner').scrollTop($('.box-kehoach-congviec').height());
+                }, 300);
+            }
+            if (sendAllClient) {
+                pushDataToSignalR({ site: siteName, keHoachID: congViecID, mucTieuID: $('#txtIDMucTieu').val(), name: 'thaoluan', data: data });
+            }
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+    return false;
+}
+function cancelThaoLuan(e) {
+    $(e).closest('.congviec-sub-form.congviec-sub-form-active').removeClass('congviec-sub-form-active');
+    return false;
+}
+function sendThaoLuan() {
+
+    let elNoiDung = $(`[name="txtChat"]`);
+    let elFiles = $(`[name="txtFile[]"]`);
+    var formData = new FormData();
+    elFiles.each(function () {
+        var file = document.getElementById($(this).attr('id')).files[0];
+        formData.append("UploadFile", file);
+    });
+    formData.append("id", congViecID);
+    formData.append("parentID", "");
+    formData.append("noidung", elNoiDung.val());
+    let noiDung = elNoiDung.val().replaceAll('\t', '').replaceAll('\n', '');
+    if (noiDung == '') {
+        elNoiDung.focus();
+        Notify('warning', $language['bsc.msg.nhapnoidungthaoluan']);
+    } else {
+
+        Loading();
+        $.ajax({
+            url: '/CongViecDuAn/SaveThaoLuan',
+            cache: false,
+            type: 'POST',
+            dataType: 'JSON',
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (response) {
+                RemoveLoading();
+                if (response.status) {
+                    elNoiDung.val('');
+                    elNoiDung.focus();
+                    $('#frmThaoLuan .congviec-sub-form-file').html('');
+                    if (response.exception != '') {
+                        Notify('warning', response.msg + '<br>' + response.exception);
+                    } else {
+                        Notify('success', response.msg);
+                    }
+                    LoadThaoLuan(true, true);
+                    LoadHistory();
+                } else {
+                    Notify('warning', response.msg);
+                }
+            },
+            error: function (a, b, c) {
+                RemoveLoading();
+            }
+        });
+    }
+    return false;
+}
+
+function sendThaoLuanSub() {
+    let elNoiDung = $(`.congviec-thaoluan-item-rely [name="txtChatSub"]`);
+    let elParentID = $(`.congviec-thaoluan-item-rely [name="txtParentID"]`);
+    let elFiles = $(`.congviec-thaoluan-item-rely [name="txtFileSub[]"]`);
+    var formData = new FormData();
+    elFiles.each(function () {
+        var file = document.getElementById($(this).attr('id')).files[0];
+        formData.append("UploadFile", file);
+    });
+    formData.append("id", congViecID);
+    formData.append("parentID", elParentID.val());
+    formData.append("noidung", elNoiDung.val());
+    if (elNoiDung.val() == '') {
+        elNoiDung.focus();
+        Notify('warning', $language['bsc.msg.nhapnoidungthaoluan']);
+    } else {
+        Loading();
+        $.ajax({
+            url: '/CongViecDuAn/SaveThaoLuan',
+            cache: false,
+            type: 'POST',
+            dataType: 'JSON',
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (response) {
+                RemoveLoading();
+                if (response.status) {
+                    elNoiDung.val('');
+                    elNoiDung.focus();
+                    if (response.exception != '') {
+                        Notify('warning', response.msg + '<br>' + response.exception);
+                    } else {
+                    }
+                    LoadThaoLuan(true, true);
+                    LoadHistory();
+                } else {
+                    MsgShow($language['bsc.msg.thongbaoloi'], 'warning', response.msg);
+                }
+            },
+            error: function (a, b, c) {
+                RemoveLoading();
+            }
+        });
+    }
+    return false;
+}
+function replyThaoLuan(e, parentID) {
+    let elBox = $(e).closest('.congviec-thaoluan-item');
+    let elReply = elBox.find(`.congviec-thaoluan-item-rely[data-id="${parentID}"]`);
+    if (elReply.find('.congviec-sub-form').length > 0) {
+        elReply.find('.congviec-sub-form').remove();
+    } else {
+
+        let elRemoveReply = $(`.congviec-thaoluan-item-rely:not([data-id="${parentID}"]) .congviec-sub-form`);
+        elRemoveReply.remove();
+
+        var template = $('#reply-form-template').text();
+        template = template.replace('%%parentid%%', parentID);
+        elReply.html(template);
+
+        elReply.find('[name="txtChatSub"]').focus();
+
+
+        elReply.find('[name="txtChatSub"]').sew({ values: jsonNhanVienCongViecs });
+        elReply.find('[name="txtChatSub"]').keyup(function (e) {
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if ((code == 13 || code === "Enter") && !e.shiftKey) {
+                if (isSewSelected) {
+                    isSewSelected = false;
+                } else {
+                    sendThaoLuanSub();
+                }
+                e.preventDefault();
+                return false;
+            }
+        });
+
+
+        elReply.find('[name="txtFileSubs"]').change(function () {
+            let files = document.getElementsByName('txtFileSubs')[0].files;
+        });
+
+    }
+    return false;
+}
+let pushData = [];
+let timeOutPushData = null;
+let isLoadFirst = true;
+function pushDataToSignalR(data) {
+
+    if (!isLoadFirst) {
+        if (timeOutPushData != null) {
+            clearTimeout(timeOutPushData);
+        }
+
+        let exist = findIndexByKey(pushData, 'name', data.name);
+        if (exist == null) {
+            pushData.push(data);
+        } else {
+            pushData[exist.Index] = data;
+        }
+
+        timeOutPushData = setTimeout(function () {
+
+            signalRHub.server.sendKeHoachbyDatas(siteName, pushData);
+
+            pushData = [];
+
+        }, 500);
+    }
+}
+//#endregion
+
+//#region Load Nhân Sự trong Công Việc
+let jsonNhanVienCongViecs = [];
+function LoadJsonNhanVien(congViecID) {
+    $.ajax({
+        url: '/CongViecDuAn/LoadJsonNhanVienThaoLuan',
+        data: {
+            id: congViecID
+        },
+        dataType: 'JSON',
+        async: false,
+        success: function (respon) {
+            jsonNhanVienCongViecs = respon.results;
+        }
+    });
+}
+
+//#endregion Load Nhân Sự trong Công Việc
+
+//#region Load Lịch Sử
+function LoadHistory(loadFirst) {
+    $.ajax({
+        url: '/CongViecDuAn/LoadHistory',
+        cache: false,
+        type: 'GET',
+        data: { id: congViecID },
+        success: function (data) {
+            $('.tablehistory tbody').append(data);
+            if (loadFirst != true) {
+                pushDataToSignalR({ site: siteName, keHoachID: congViecID, mucTieuID: $('#txtIDMucTieu').val(), name: 'lichsu', data: data });
+            }
+            $('.open-popup-link').magnificPopup({
+                type: 'ajax',
+                midClick: true
+            });
+
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+    return false;
+}
+
+
+function chiTietLichSu(lsID) {
+    $.ajax({
+        url: '/CongViecDuAn/GetHistory',
+        cache: false,
+        type: 'GET',
+        data: { id: lsID },
+        success: function (data) {
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+    return false;
+}
+//#endregion
+
+function ThemHoTro() {
+    $(".divWrapHoTroChiTiet").trigger('click');
+}
+function LoadNhanVienPhuTrachSelectChiTiet(e, loai) {
+    var listidnhansu = $(`[name="DanhSachNhanSuDuAnID"]`).val();
+    var elNguoiPhuTrach = $('[name="txtAddNguoiPhuTrach"]');
+    var elNguoiHoTro = $('[name="txtAddNguoiHoTro"]');
+    var listidCurrent = elNguoiPhuTrach.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elNguoiPhuTrach.hasClass('select2-hidden-accessible')) {
+                elNguoiPhuTrach.select2('destroy');
+                elNguoiPhuTrach.closest('.assign-box').find('.select2').remove();
+            }
+            elNguoiPhuTrach.html(data.Objects);
+            elNguoiPhuTrach.select2({
+                width: '450px',
+                allowClear: false,
+                dropdownCssClass: 'select2custom',
+                templateResult: formatResultMulti,
+                templateFooter: formatTemplateFooterPhuTrachChiTiet
+            });
+            var arrayHoTroID = elNguoiHoTro.attr('data-idselected') != null ? elNguoiHoTro.attr('data-idselected').splitSafe(',') : [];
+            if (arrayHoTroID.length > 0) {
+                for (var i = 0; i <= arrayHoTroID.length; i++) {
+                    elNguoiPhuTrach.find(`option[value="${arrayHoTroID[i]}"]`).prop('disabled', true);
+                }
+            }
+            elNguoiPhuTrach.val(elNguoiPhuTrach.attr('data-idselected')).trigger('change');
+            elNguoiPhuTrach.select2('open');
+
+            elNguoiPhuTrach.unbind('select2:select');
+            elNguoiPhuTrach.on('select2:select', function (e) {
+                LoadAliasNhanVienChiTiet(elNguoiPhuTrach.val(), elNguoiPhuTrach, "pt");
+                elNguoiPhuTrach.attr('data-idselected', elNguoiPhuTrach.val());
+            });
+        }
+    });
+    return false;
+}
+
+function LoadNhanVienHoTroSelectChiTiet(e, loai) {
+    var listidnhansu = $(`[name="DanhSachNhanSuDuAnID"]`).val();
+    var elNguoiPhuTrach = $('[name="txtAddNguoiPhuTrach"]');
+    var elNguoiHoTro = $('[name="txtAddNguoiHoTro"]');
+    var listidCurrent = elNguoiHoTro.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elNguoiHoTro.hasClass('select2-hidden-accessible')) {
+                elNguoiHoTro.select2('destroy');
+                elNguoiHoTro.closest('.assign-box').find('.select2').remove();
+            }
+            elNguoiHoTro.html(data.Objects);
+            elNguoiHoTro.select2({
+                width: '450px',
+                allowClear: false,
+                closeOnSelect: false,
+                dropdownCssClass: 'select2custom',
+                containerCssClass: 'select2customcontainer',
+                templateResult: formatResultMulti,
+                templateFooter: formatTemplateFooterHoTroChiTiet
+            });
+            var arrayPhuTrachID = elNguoiPhuTrach.val() != null ? elNguoiPhuTrach.val().splitSafe(',') : [];
+            if (arrayPhuTrachID.length > 0) {
+                for (var i = 0; i <= arrayPhuTrachID.length; i++) {
+                    elNguoiHoTro.find(`option[value="${arrayPhuTrachID[i]}"]`).prop('disabled', true);
+                }
+            }
+            elNguoiHoTro.val(elNguoiHoTro.attr('data-idselected').splitSafe(',')).trigger('change');
+            elNguoiHoTro.select2('open');
+            elNguoiHoTro.unbind('select2:select');
+            elNguoiHoTro.on('select2:select', function (e) {
+                LoadAliasNhanVienChiTiet(elNguoiHoTro.val(), elNguoiHoTro, "ht");
+                elNguoiHoTro.attr('data-idselected', elNguoiHoTro.val());
+                //elNguoiHoTro.closest("#collapseHT").find(".panel-footer").show();
+            }).on('select2:unselect', function (e) {
+                LoadAliasNhanVienChiTiet(elNguoiHoTro.val(), elNguoiHoTro, "ht");
+                elNguoiHoTro.attr('data-idselected', elNguoiHoTro.val());
+                //elNguoiHoTro.closest("#collapseHT").find(".panel-footer").show();
+            });
+        }
+    });
+    return false;
+}
+function LoadAliasNhanVienChiTiet(id, item, loai) {
+
+    if (loai == "pt") {
+        var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id + "']");
+        if (htmlTemp.length > 0) {
+            htmlTemp.find(".aliasname").tooltipster('destroy');
+            htmlTemp.find(".aliasname").removeClass("tooltipstered");
+            htmlTemp.find(".aliasname").removeClass("initAlias");
+            var htmlNew = htmlTemp.prop('outerHTML');
+            $(".divNhanSuPhuTrachChiTiet").find(".spantennguoihotro").replaceWith(htmlNew);
+        }
+        else {
+            var txtHoTroNew = "";
+            var selectedOption = item.find(':selected')[0];
+            var selectedText = $(selectedOption).text();
+            var chucvu = $(selectedOption).data('chucvu');
+            var bophan = $(selectedOption).data('bophan');
+            if (chucvu != '' && chucvu != undefined) {
+                var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            else {
+                var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            $(".divNhanSuPhuTrachChiTiet").find(".spantennguoihotro").replaceWith(txtHoTroNew);
+            if ($(".divNhanSuPhuTrachChiTiet").find(".namephutrach").length > 0) {
+                $(".divNhanSuPhuTrachChiTiet").find(".namephutrach").text(selectedText);
+            }
+        }
+
+        initAliasName();
+    }
+    else {
+        var txtHoTroNew = "";
+        if (id.length > 0) {
+            for (var i = 0; i < id.length; i++) {
+                var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id[i] + "']");
+                if (htmlTemp.length > 0) {
+                    htmlTemp.find('.aliasname').tooltipster('destroy');
+                    htmlTemp.find('.aliasname').removeClass("tooltipstered");
+                    htmlTemp.find(".aliasname").removeClass("initAlias");
+                    var htmlNew = htmlTemp.prop('outerHTML');
+                    txtHoTroNew += htmlNew;
+                }
+                else {
+                    var selectedOption = item.find(':selected')[i];
+                    var selectedText = $(selectedOption).text();
+                    var chucvu = $(selectedOption).data('chucvu');
+                    var bophan = $(selectedOption).data('bophan');
+                    if (chucvu != '' && chucvu != undefined) {
+                        var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                    else {
+                        var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                }
+            }
+        }
+        $(".divNhanSuHoTroChiTiet").html(txtHoTroNew);
+        initAliasName();
+    }
+
+    return false;
+}
+function formatTemplateFooterPhuTrachChiTiet() {
+    return `<div class="text-center"><a style='cursor:pointer;' onclick="return LoadNhanVienPhuTrachSelectChiTiet(this,'invite');">Mời tham gia</a></div>`;
+}
+function formatTemplateFooterHoTroChiTiet() {
+    return `<div class="text-center"><a style='cursor:pointer:' onclick="return LoadNhanVienHoTroSelectChiTiet(this,'invite');">Mời tham gia</a></div>`;
+}
+
+
+//#region nhân sự dự án
+
+function callBackLoadNhanVienPhuTrachSelect(item, loai) {
+
+    let dataID = item.closest('.select2-container').attr('data-id');
+    if (dataID != undefined && dataID != '') {
+        let elSelect = $(`.dropdownparentSelect2[data-id=${dataID}]`);
+        LoadNhanVienPhuTrachSelect(elSelect, loai);
+    } else {
+        dataID = item.closest('.select2-container').attr('data-tt-id');
+        if (dataID != undefined && dataID != '') {
+            let elSelect = $(`.dropdownparentSelect2[data-tt-id=${dataID}]`);
+            LoadNhanVienPhuTrachSelect(elSelect, loai);
+        }
+    }
+}
+function callBackLoadNhanVienHoTroSelect(item, loai) {
+
+    let dataID = item.closest('.select2-container').attr('data-id');
+    if (dataID != undefined && dataID != '') {
+        let elSelect = $(`.dropdownparentSelect2[data-id=${dataID}]`);
+        LoadNhanVienHoTroSelect(elSelect, loai);
+    } else {
+        dataID = item.closest('.select2-container').attr('data-tt-id');
+        if (dataID != undefined && dataID != '') {
+            let elSelect = $(`.dropdownparentSelect2[data-tt-id=${dataID}]`);
+            LoadNhanVienHoTroSelect(elSelect, loai);
+        }
+    }
+}
+function LoadNhanVienPhuTrachSelect(item, loai, newselect) {
+    var rootParent = item.hasClass('dropdownparentSelect2') ? item : item.closest(".dropdownparentSelect2");
+    var elNguoiPhuTrach = rootParent.find('[name="NguoiPhuTrachID"]');
+    var elNguoiHoTro = rootParent.find('[name="NguoiHoTroID"]');
+    var dropdownparent = null;
+    var loaitable = '';
+    if ($('#box-kanban-board').is(':visible')) {
+        dropdownparent = $('#box-kanban-board');
+        dropdownparent = $('.app-main__inner');
+        loaitable = 'kanban';
+    }
+    else if (rootParent.find('.TDNguoiPhuTrach').length > 0) {
+        dropdownparent = rootParent.find('.TDNguoiPhuTrach');
+        dropdownparent = $('.app-main__inner');
+        loaitable = 'bang';
+    }
+    else {
+
+        dropdownparent = elNguoiPhuTrach.closest('.divWrapPhuTrach');
+        loaitable = 'modal';
+    }
+
+    var listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+    if (listidnhansu == undefined) {
+        listidnhansu = [];
+    }
+    var listidCurrent = elNguoiPhuTrach.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elNguoiPhuTrach.hasClass('select2-hidden-accessible')) {
+                elNguoiPhuTrach.select2('destroy');
+                elNguoiPhuTrach.closest('td').find('.select2').remove();
+            }
+            elNguoiPhuTrach.html(data.Objects);
+            if (newselect != undefined && newselect == "true") {
+                elNguoiPhuTrach.select2({
+                    width: '100%',
+                    allowClear: false,
+                    dropdownCssClass: 'select2custom',
+                    templateResult: formatResultMulti,
+                    templateFooter: () => formatTemplateFooterPhuTrach(true)
+                });
+            }
+            else {
+                elNguoiPhuTrach.select2({
+                    width: '100%',
+                    allowClear: false,
+                    dropdownParent: dropdownparent,
+                    templateResult: formatResultMulti,
+                    templateFooter: () => formatTemplateFooterPhuTrach(true)
+                });
+            }
+            var arrayHotroID = elNguoiHoTro.attr('data-idselected') != null ? elNguoiHoTro.attr('data-idselected').splitSafe(',') : [];
+            if (arrayHotroID.length > 0) {
+                for (var i = 0; i <= arrayHotroID.length; i++) {
+                    elNguoiPhuTrach.find(`option[value="${arrayHotroID[i]}"]`).prop('disabled', true);
+                }
+            }
+
+            elNguoiPhuTrach.val(elNguoiPhuTrach.attr('data-idselected')).trigger('change');
+            elNguoiPhuTrach.select2('open');
+
+            elNguoiPhuTrach.unbind('select2:select');
+            elNguoiPhuTrach.on('select2:select', function (e) {
+                LoadAliasNhanVien(elNguoiPhuTrach.val(), elNguoiPhuTrach, "pt", newselect);
+                elNguoiPhuTrach.attr('data-idselected', elNguoiPhuTrach.val());
+                if (typeof setIsEditRow == 'function') {
+                    setIsEditRow(elNguoiPhuTrach.closest("tr"));
+                }
+            });
+        }
+    });
+    return false;
+}
+function LoadNhanVienHoTroSelect(item, loai) {
+    var rootParent = item.closest(".dropdownparentSelect2");
+    var elNguoiPhuTrach = rootParent.find('[name="NguoiPhuTrachID"]');
+    var elNguoiHoTro = rootParent.find('[name="NguoiHoTroID"]');
+
+    var dropdownparent = null;
+    if ($('#box-kanban-board').is(':visible')) {
+        dropdownparent = $('#box-kanban-board');
+    }
+    else if ($(this).closest(".dropdownparentSelect2").find('.TDNguoiPhuTrach').length > 0) {
+        dropdownparent = $(this).closest(".dropdownparentSelect2").find('.TDNguoiHoTro');
+    }
+    else {
+        dropdownparent = elNguoiHoTro.closest('.divWrapHoTro')
+    }
+
+
+    var listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+    if (listidnhansu == undefined) {
+        listidnhansu = [];
+    }
+    var listidCurrent = elNguoiHoTro.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elNguoiHoTro.hasClass('select2-hidden-accessible')) {
+                elNguoiHoTro.select2('destroy');
+                elNguoiHoTro.closest('td').find('.select2').remove();
+            }
+            elNguoiHoTro.html(data.Objects);
+            elNguoiHoTro.select2({
+                width: '100%',
+                allowClear: false,
+                closeOnSelect: false,
+                dropdownParent: dropdownparent,
+                templateResult: formatResultMulti,
+                templateFooter: () => formatTemplateFooterHoTro(true)
+            });
+
+            var arrayPhuTrachID = elNguoiPhuTrach.attr('data-idselected') != null ? elNguoiPhuTrach.attr('data-idselected').splitSafe(',') : [];
+            if (arrayPhuTrachID.length > 0) {
+                for (var i = 0; i <= arrayPhuTrachID.length; i++) {
+                    elNguoiHoTro.find(`option[value="${arrayPhuTrachID[i]}"]`).prop('disabled', true);
+                }
+            }
+            elNguoiHoTro.val(elNguoiHoTro.attr('data-idselected').splitSafe(',')).trigger('change');
+            elNguoiHoTro.select2('open');
+
+            elNguoiHoTro.unbind('select2:select');
+            elNguoiHoTro.on('select2:select', function (e) {
+                LoadAliasNhanVien(elNguoiHoTro.val(), elNguoiHoTro, "ht");
+                elNguoiHoTro.attr('data-idselected', elNguoiHoTro.val());
+                if (typeof setIsEditRow == 'function') {
+                    setIsEditRow(elNguoiHoTro.closest("tr"));
+                }
+            }).on('select2:unselect', function (e) {
+                LoadAliasNhanVien(elNguoiHoTro.val(), elNguoiHoTro, "ht");
+                elNguoiHoTro.attr('data-idselected', elNguoiHoTro.val());
+                if (typeof setIsEditRow == 'function') {
+                    setIsEditRow(elNguoiHoTro.closest("tr"));
+                }
+
+            });
+        }
+    });
+    return false;
+}
+
+function formatResultMulti(data) {
+    var chucvu = $(data.element).data('chucvu');
+    var bophan = $(data.element).data('bophan');
+    if (chucvu == undefined) chucvu = data.chucvu;
+    if (bophan == undefined) bophan = data.bophan;
+    var $result = $(
+        '<div class="row">' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + data.text + '</div>' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + chucvu + '</div>' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + bophan + '</div>' +
+        '</div>'
+    );
+    return $result;
+}
+function formatTemplateFooterPhuTrach(checkhasFooter) {
+    
+    if (checkhasFooter) {
+        return `<div class="text-center"><a class='btn btn-main-outline' style='cursor:pointer;margin-top:10px;padding: 3px 6px;font-size: 12px;' onclick="return callBackLoadNhanVienPhuTrachSelect($(this), 'invite');">Mời tham gia</a></div>`;
+    }
+    else {
+        return '';
+    }
+}
+function formatTemplateFooterHoTro(checkhasFooter) {
+    if (checkhasFooter) {
+        return `<div class="text-center"><a class='btn btn-main-outline' style='cursor:pointer;margin-top:10px;padding: 3px 6px;font-size: 12px;' onclick="return callBackLoadNhanVienHoTroSelect($(this),'invite');">Mời tham gia</a></div>`;
+    }
+    else {
+        return '';
+    }
+}
+function LoadAliasNhanVien(id, item, loai, newselect) {
+    if (loai == 'pt') {
+        var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id + "']");
+        if (htmlTemp.length > 0) {
+            htmlTemp.find(".aliasname").tooltipster('destroy');
+            htmlTemp.find(".aliasname").removeClass("tooltipstered");
+            htmlTemp.find(".aliasname").removeClass("initAlias");
+            var htmlNew = htmlTemp.prop('outerHTML');
+            item.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(htmlNew);
+        }
+        else {
+            var txtHoTroNew = "";
+            var selectedOption = item.find(':selected')[0];
+            var selectedText = $(selectedOption).text();
+            var chucvu = $(selectedOption).data('chucvu');
+            var bophan = $(selectedOption).data('bophan');
+            if (chucvu != '' && chucvu != undefined) {
+                var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            else {
+                var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            item.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(txtHoTroNew);
+            if (item.closest(".divWrapPhuTrach").find(".namephutrach").length > 0) {
+                item.closest(".divWrapPhuTrach").find(".namephutrach").text(selectedText);
+            }
+        }
+        item.closest(".divWrapPhuTrach").find(".spantennguoihotro").on('click', function () {
+            LoadNhanVienPhuTrachSelect($(this), '', newselect);
+        });
+        initAliasName();
+    }
+    else {
+        var txtHoTroNew = "";
+        if (id.length > 0) {
+            for (var i = 0; i < id.length; i++) {
+                var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id[i] + "']");
+                if (htmlTemp.length > 0) {
+                    htmlTemp.find(".aliasname").tooltipster('destroy');
+                    htmlTemp.find(".aliasname").removeClass("tooltipstered");
+                    htmlTemp.find(".aliasname").removeClass("initAlias");
+                    var htmlNew = htmlTemp.prop('outerHTML');
+                    txtHoTroNew += htmlNew;
+                }
+                else {
+                    var selectedOption = item.find(':selected')[i];
+                    var selectedText = $(selectedOption).text();
+                    var chucvu = $(selectedOption).data('chucvu');
+                    var bophan = $(selectedOption).data('bophan');
+                    if (chucvu != '' && chucvu != undefined) {
+                        var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                    else {
+                        var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                }
+            }
+        }
+        else {
+            txtHoTroNew = `<p class="spantennguoihotro nouser"><i class="fa fa-users" aria-hidden="true"></i></p>`;
+        }
+        item.closest(".divWrapHoTro").find(".divNhanSuHoTro").html(txtHoTroNew);
+        item.closest(".divWrapHoTro").find(".spantennguoihotro").on('click', function () {
+            LoadNhanVienHoTroSelect($(this), '');
+        });
+
+        initAliasName();
+    }
+    return false;
+}
+
+//#endregion
+//region Load Nhân sự phụ trách công việc con
+function LoadNhanVienPhuTrachCongViecCon(item, loai) {
+    var rootParent = item.closest("tr");
+    var elNguoiPhuTrach = rootParent.find('[name="NguoiPhuTrachIDCongViecCon"]');
+    var dropdownparent = null;
+    dropdownparent = $('#myModalChiTietDuAn');
+    var listidnhansu = [];
+    var listidCurrent = elNguoiPhuTrach.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elNguoiPhuTrach.hasClass('select2-hidden-accessible')) {
+                elNguoiPhuTrach.select2('destroy');
+                elNguoiPhuTrach.closest('td').find('.select2').remove();
+            }
+            elNguoiPhuTrach.html(data.Objects);
+            elNguoiPhuTrach.select2({
+                width: '100%',
+                allowClear: false,
+                dropdownCssClass: 'select2custom',
+                dropdownParent: dropdownparent,
+                templateResult: formatResultMulti
+            });
+
+            elNguoiPhuTrach.val(elNguoiPhuTrach.attr('data-idselected')).trigger('change');
+            elNguoiPhuTrach.select2('open');
+
+            elNguoiPhuTrach.unbind('select2:select');
+            elNguoiPhuTrach.on('select2:select', function (e) {
+                LoadAliasNhanVienCongViecCon(elNguoiPhuTrach.val(), elNguoiPhuTrach, "pt");
+                elNguoiPhuTrach.attr('data-idselected', elNguoiPhuTrach.val());
+            });
+        }
+    });
+    return false;
+}
+function LoadAliasNhanVienCongViecCon(id, item, loai) {
+    var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id + "']");
+    if (htmlTemp.length > 0) {
+        htmlTemp.find(".aliasname").tooltipster('destroy');
+        htmlTemp.find(".aliasname").removeClass("tooltipstered");
+        htmlTemp.find(".aliasname").removeClass("initAlias");
+        var htmlNew = htmlTemp.prop('outerHTML');
+        item.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(htmlNew);
+    }
+    else {
+        var txtHoTroNew = "";
+        var selectedOption = item.find(':selected')[0];
+        var selectedText = $(selectedOption).text();
+        var chucvu = $(selectedOption).data('chucvu');
+        var bophan = $(selectedOption).data('bophan');
+        if (chucvu != '' && chucvu != undefined) {
+            var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+            txtHoTroNew += htmlNew.prop('outerHTML');
+        }
+        else {
+            var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+            txtHoTroNew += htmlNew.prop('outerHTML');
+        }
+        item.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(txtHoTroNew);
+        if (item.closest(".divWrapPhuTrach").find(".namephutrach").length > 0) {
+            item.closest(".divWrapPhuTrach").find(".namephutrach").text(selectedText);
+        }
+    }
+    item.closest(".divWrapPhuTrach").find(".spantennguoihotro").on('click', function () {
+        LoadNhanVienPhuTrachCongViecCon($(this), '');
+    });
+    initAliasName();
+    return false;
+}
+
+//endregion
+
+//#region Update Chi tiết Mô tả
+function toggleContentEditor(e) {
+    let elBox = $(e).closest('.congviec-noidung');
+    elBox.find('.content').hide();
+    elBox.find('.content-editor').show();
+    //keepValue = elBox.find("div[contenteditable='true']").html();
+
+    elBox.find('.content-editor').find("div[contenteditable='true']").each(function () {
+        let nameDiv = $(this).attr('name');
+        let idDiv = 'ckEditor' + nameDiv;
+        $(this).attr('id', idDiv);
+        $(this).attr('data-keepvalue', $(this).html());
+        if (CKEDITOR.instances[idDiv] != undefined) {
+            CKEDITOR.instances[idDiv].destroy();
+        }
+
+
+        CKEDITOR.inline(idDiv).on('instanceReady', function (event) {
+            event.editor.focus();
+        });
+        CKEDITOR.instances[idDiv].on('blur', function (event) {
+            let elInput = elBox.find("div[contenteditable='true']");
+            if (elInput.text().trim() == "") {
+                elBox.find('.content').html(`<span style="font-style: italic;color: #999;">` + $language['bsc.msg.nhapmota'] + `</span>`);
+                elBox.find('.content').show();
+                elBox.find('.content-editor').hide();
+            }
+            else {
+                elBox.find('.content').html(elInput.html().replaceAll('\n', '<br>'));
+                elBox.find('.content').show();
+                elBox.find('.content-editor').hide();
+            }
+
+        });
+        setTimeout(function () {
+            if ($("#" + idDiv + "").attr('data-placeholder') == null || $("#" + idDiv + "").attr('data-placeholder') == undefined) {
+                $("#" + idDiv + "").attr('data-placeholder', 'Vui lòng nhập nội dung...');
+            }
+            if ($("#" + idDiv + "").html() == '<br>') {
+                $("#" + idDiv + "").html('');
+            }
+        }, 300);
+    });
+
+    return false;
+}
+
+//#endregion
+
+//#region Update Chi tiết File đình kèm
+function VHAddUrl(idbc, type) {
+    var fileUrl = prompt($language['bsc.title.nhapurl'], "");
+    if (fileUrl != null) {
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = fileUrl;
+        $('.fileListChiTiet').append('<li class="tenfile" data-file="' + fileName + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeVHFile(this, \'' + idbc + '\')"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+        $('.fileListChiTiet').next().hide();
+    }
+    return false;
+}
+//function saveFileTaiLieu(keHoachID, type, files) {
+//    Loading();
+//    $.ajax({
+//        url: '/CongViecDuAn/SaveFileTaiLieu',
+//        type: "POST",
+//        data: {
+//            id: keHoachID,
+//            type: type,
+//            files: files
+//        },
+//        cache: false,
+//        success: function (response) {
+//            RemoveLoading();
+//            if (response.status) {
+
+//                Notify('success', 'Cập nhật file thành công!');
+
+//                if (type == 'tailieu') {
+//                    let elUL = $('tr[data-tt-id="' + keHoachID + '"] ul.congviec-tailieu-files');
+
+//                    elUL.next('span').remove();
+//                    elUL.html(response.html);
+//                    if (elUL.find('li').length > 0) {
+//                        //elUL.closest('td').find('.count-files').html(`Có ${elUL.find('li').length} file tài liệu`);
+//                        elUL.closest('td').find(".btn-file, .btnfile").html($language['bsc.msg.cofiletailieu'].f(elUL.find('li').length));
+//                        elUL.closest('tr').attr('data-edit', 'True');
+//                    } else {
+//                        elUL.closest('td').find(".btn-file, .btnfile").html($language['bsc.msg.cofiletailieu'].f(elUL.find('li').length));
+//                    }
+//                    if ($('.box-kehoach-congviec[data-id="' + keHoachID + '"] ul.congviec-tailieu-files').length > 0) {
+//                        $('.box-kehoach-congviec[data-id="' + keHoachID + '"] ul.congviec-tailieu-files').html(response.html);
+//                        $('.box-kehoach-congviec[data-id="' + keHoachID + '"] ul.congviec-tailieu-files').next('span').remove();
+//                    }
+
+//                }
+//            } else {
+
+//                var msg = response.msg;
+
+//                MsgShow('Lỗi tải file', 'warning', '<div style="max-height:400px;">' + msg + '</div>');
+//            }
+//            return false;
+//        },
+//        error: function (a, b, c) {
+//            RemoveLoading();
+//            Notify('warning', a);
+//        }
+//    });
+
+//    return false;
+//}
+function removeVHFile(e, idbc) {
+    if (confirm($language['bsc.msg.xoafile'])) {
+
+        $(e).closest('.tenfile').remove();
+        if ($('.fileListChiTiet li').length == 0) {
+            $('.fileListChiTiet').next().show();
+        }
+    }
+    return false;
+}
+function boxConfirm(title, callBack) {
+    Lobibox.alert('warning', {
+        msg: title,
+        buttons: {
+            yes: {
+                'class': 'btn btn-danger',
+                closeOnClick: true,
+                text: $language['bsc.msg.cotieptuc']
+            },
+            no: {
+                'class': 'btn btn-primary',
+                closeOnClick: true,
+                text: $language['bsc.msg.khongdonglai']
+            }
+        },
+        callback: function (lobibox, type) {
+            if (type === 'yes') {
+                if (typeof callBack == 'function') {
+                    callBack();
+                }
+            }
+        }
+    });
+}
+function VHBrowseServers(idbc) {
+
+    var popupWinWidth = 1000;
+    var popupWinHeight = 800;
+    var left = (screen.width - popupWinWidth) / 2;
+    var top = (screen.height - popupWinHeight) / 4;
+
+    var t = window.open('/FileManager/?multi=true', 'File Manager',
+        'resizable=yes, width=' + popupWinWidth
+        + ', height=' + popupWinHeight + ', top='
+        + top + ', left=' + left);
+    window.selectedFiles = function (files) {
+        VHSetFileField(idbc, files);
+    }
+
+    return false;
+}
+function VHSetFileField(idbc, uniqueFiles) {
+    var length = uniqueFiles.length;
+    for (var i = 0; i < length; i++) {
+        fileUrl = uniqueFiles[i];
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = getFileName(fileUrl);
+        $('.fileListChiTiet').append('<li class="tenfile" data-file="' + fileUrl + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeVHFile(this, \'' + idbc + '\')"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+    }
+}
+//#endregion
+function boxConfirm(title, callBack) {
+    Lobibox.alert('warning', {
+        msg: title,
+        buttons: {
+            yes: {
+                'class': 'btn btn-danger',
+                closeOnClick: true,
+                text: $language['bsc.msg.cotieptuc']
+            },
+            no: {
+                'class': 'btn btn-primary',
+                closeOnClick: true,
+                text: $language['bsc.msg.khongdonglai']
+            }
+        },
+        callback: function (lobibox, type) {
+            if (type === 'yes') {
+                if (typeof callBack == 'function') {
+                    callBack();
+                }
+            }
+        }
+    });
+}
+
+function LuuCongViecChiTiet() {
+   
+    var hasError = [];
+    let elBatDau = $(`.divNgayChoiceDuAn [name="txtNgayChoiceStart"]`);
+    let elKetThuc = $(`.divNgayChoiceDuAn [name="txtNgayChoiceEnd"]`);
+    let elNguoiPhuTrachID = $('[name="NguoiPhuTrachIDParent"]');
+    let elNguoiHoTroID = $('[name="NguoiHoTroIDParent"]');
+    let elTenCongViec = $(`[name="TenCongViecChiTiet"]`);
+    let elIDDoLuong = $(`.formChiTieu [name="txtDonViChiTiet"]`);
+
+    let ngayBatDau = moment(elBatDau.val(), "DD/MM/YYYY");
+    let ngayKetThuc = moment(elKetThuc.val(), "DD/MM/YYYY");
+
+    if (elTenCongViec.val() == "") {
+        hasError.push({
+            el: elTenCongViec,
+            msg: $language['bsc.msg.nhaptencongviec']
+        });
+    } else if (elIDDoLuong.val() == null || elIDDoLuong.val() == undefined) {
+        hasError.push({
+            el: elIDDoLuong,
+            msg: $language['bsc.msg.nhapdonvi']
+        });
+    } else if (ngayBatDau == null || ngayBatDau == undefined || !ngayBatDau.isValid()) {
+        hasError.push({
+            el: elBatDau,
+            msg: $language['bsc.msg.nhapngaybatdau']
+        });
+    } else if (ngayKetThuc == null || ngayKetThuc == undefined || !ngayKetThuc.isValid()) {
+        hasError.push({
+            el: elKetThuc,
+            msg: $language['bsc.msg.nhapngayketthuc']
+        });
+    }
+    else if ((elNguoiPhuTrachID.attr("data-idselected") == '' || elNguoiPhuTrachID.attr("data-idselected") == null)) {
+        hasError.push({
+            el: elNguoiPhuTrachID,
+            msg: 'Vui lòng chọn người phụ trách'
+        });
+    }
+
+    if (hasError.length > 0) {
+        Notify('warning', hasError[0].msg);
+        hasError[0].el.focus();
+        return false;
+    }
+
+    var jsonData = [];
+
+    let elID = $(`[name="IDCongViecModal"]`);
+    let elMTCTID = $(`[name="txtMTIDChiTiet"]`);
+    let elParentID = $(`[name="txtParentIDChiTiet"]`);
+
+    let elNganSach = $(`[name="txtNganSachChiTiet"]`);
+    let elMucTieu = $(`.formChiTieu [name="txtChiTieuChiTiet"]`);
+    let elTiTrong = $(`[name="txtTiTrongChiTiet"]`);
+    let elDuAnID = $(`[name="txtDAIDChiTiet"]`);
+    let elListChiTieu = $(`[name="ListChiTieuChiTiet"]`);
+    let elHinhThuc = $(`[name="txtHinhThucChiTiet"]`);
+    let elTanSuat = $(`.formChiTieu [name="txtTanSuatChiTiet"]`);
+    let elButtonChiaChiTieu = $('.formChiTieu .btnchiachitieuchitiet');
+    let elUuTien = $(".btnUuTien").text();
+    var strtenfile = "";
+    $(`.fileListChiTiet .tenfile[data-file]`).each(function () {
+        strtenfile += $(this).attr('data-file') + "####";
+    });
+
+    jsonData.push({
+        ID: elID.val(),
+        MucTieuID: elMTCTID.val(),
+        DuAnID: elDuAnID.val(),
+        NguoiPhuTrachID: elNguoiPhuTrachID.attr("data-idselected"),
+        NguoiHoTroID: $.isArray(elNguoiHoTroID.attr("data-idselected")) ? elNguoiHoTroID.attr("data-idselected").join(',') : elNguoiHoTroID.attr("data-idselected"),
+        ListChiTieu: elListChiTieu.val(),
+        HinhThuc: elHinhThuc.val(),
+        ParentID: elParentID.val(),
+        TenCongViec: elTenCongViec.val(),
+        NgayChon: `${elBatDau.val()} - ${elKetThuc.val()}`,
+        MucTieu: elMucTieu.val().replaceAll(',', ''),
+        IDDoLuong: elIDDoLuong.val(),
+        SelTanSuat: elTanSuat.val(),
+        NganSach: elNganSach.val().replaceAll(',', ''),
+        TiTrong: elTiTrong.val().replaceAll(',', ''),
+        TenFile: strtenfile,
+        UuTien: elUuTien,
+        MoTa: $(`[name="NoiDungChiTiet"]`).html(),
+        CheckDaChia: elButtonChiaChiTieu.hasClass("fa-exclamation-triangle") ? 'False' : 'True',
+        ClassTiTrong: elTiTrong.attr('class')
+    });
+    if (jsonData.length > 0) {
+        let dataListTiTrong = [];
+        $('#templateCongViecDuAnChiTiet div').each(function () {
+            let item = {
+                id: $(this).attr('data-idcheck'),
+                titrong: $(this).attr('data-titrongcheck'),
+                titrongcal: $(this).attr('data-titrongcalcheck'),
+                classname: $(this).attr('class')
+            };
+            dataListTiTrong.push(item);
+        });
+
+        let dataListCongViecCon = [];
+        $(".tablecongvieccon > tbody > tr[data-idcongvieccon='new-congvieccon']").each(function () {
+            let elRow = $(this);
+            let tencongvieccon = elRow.find('[name="titleChiTietCongViecCon"]').val();
+            let nguoiphutrachid = elRow.find('[name="NguoiPhuTrachIDCongViecCon"]').attr("data-idselected");
+            let elBatDau = elRow.find(`[name="txtNgayChoiceStart"]`);
+            let elKetThuc = elRow.find(`[name="txtNgayChoiceEnd"]`);
+
+            if (tencongvieccon != undefined && tencongvieccon != "") {
+                let item = {
+                    TenCongViecCon: tencongvieccon,
+                    NguoiPhuTrachID: nguoiphutrachid,
+                    NgayChon: `${elBatDau.val()} - ${elKetThuc.val()}`,
+                };
+                dataListCongViecCon.push(item);
+            }
+        });
+
+
+        Loading();
+        //var form = $("#frmTask").serializeArray();
+        var formData = new FormData();
+        formData.append('models', jsonData);
+        console.log(idbophanselect);
+        $.ajax({
+            type: "POST",
+            url: '/CongViecDuAn/Details',
+            data: {
+                phutrach: loaiphutrach != undefined && loaiphutrach != null && loaiphutrach != "" ? loaiphutrach : "pt",
+                models: jsonData,
+                dataListTiTrong: JSON.stringify(dataListTiTrong),
+                dataListCongViecCon: JSON.stringify(dataListCongViecCon),
+                PhuTrachMucTieu: idbophanselect
+            },
+            dataType: "json",
+            success: function (response) {
+                RemoveLoading();
+                if (response.status) {
+                    $("#templateCongViecDuAnChiTietTemp").html("");
+                    HideModalChiTiet();
+                    Notify('success', response.msg);
+                    pushDataToSignalR({ site: siteName, keHoachID: 0, mucTieuID: $('#txtIDMucTieu').val(), name: 'luucongviec', data: jsonData });
+                    firstload = true;
+                    if ($("body").attr("class").indexOf("dashboard") > -1 || $("body").attr("class").indexOf("baocaochitietbsc") > -1) {
+                        LoadDuAnNew();
+                    }
+                    else {
+                        LoadTable();
+                    }
+                } else {
+                    Notify('warning', response.msg);
+
+                }
+            },
+            error: function () {
+                RemoveLoading();
+
+                Notify('warning', $language['bsc.msg.loiluu']);
+
+            }
+        });
+        return false;
+
+    }
+}
+
+function checkAlertCongViecChiTiet() {
+    let elBatDau = $(`[name="txtNgayBatDauChiTiet"]`);
+    let elKetThuc = $(`[name="txtNgayKetThucChiTiet"]`);
+    let elMucTieu = $(`.formChiTieu [name="txtChiTieuChiTiet"]`);
+    let elTanSuat = $(`.formChiTieu [name="txtTanSuatChiTiet"]`);
+    let elButtonChiaChiTieu = $(".formChiTieu #btnchiachitieuchitiet");
+
+    var chitieucu = NVParseFloat('' + elMucTieu.data("chitieucu"));
+    var chitieumoi = NVParseFloat('' + elMucTieu.val());
+    if (chitieucu != chitieumoi) {
+        elButtonChiaChiTieu.removeClass("fa-arrow-circle-down");
+        elButtonChiaChiTieu.addClass("fa-exclamation-triangle");
+        elButtonChiaChiTieu.css("color", "red");
+    }
+    else {
+        var tansuatcu = elTanSuat.data("tansuatcu");
+        var tansuatmoi = elTanSuat.val();
+        if (tansuatcu != tansuatmoi) {
+            elButtonChiaChiTieu.removeClass("fa-arrow-circle-down");
+            elButtonChiaChiTieu.addClass("fa-exclamation-triangle");
+            elButtonChiaChiTieu.css("color", "red");
+        }
+        else {
+            var ngaychoncu = `${elBatDau.attr('data-ngaychoncu')} - ${elKetThuc.attr('data-ngaychoncu')}`;
+            var ngaychonmoi = `${elBatDau.val()} - ${elKetThuc.val()}`;
+            if (ngaychoncu != ngaychonmoi) {
+                elButtonChiaChiTieu.removeClass("fa-arrow-circle-down");
+                elButtonChiaChiTieu.addClass("fa-exclamation-triangle");
+                elButtonChiaChiTieu.css("color", "red");
+            }
+            else {
+                elButtonChiaChiTieu.addClass("fa-arrow-circle-down");
+                elButtonChiaChiTieu.removeClass("fa-exclamation-triangle");
+                elButtonChiaChiTieu.css("color", "#ed7d31");
+            }
+        }
+    }
+    //if ($("#IDCongViecModal").val() == null || $("#IDCongViecModal").val() == "") {
+    //    var chitieucu = NVParseFloat('' + $('.formChiTieu [name="txtChiTieuChiTiet"]').data("chitieucu"));
+    //    var chitieumoi = NVParseFloat('' + $('.formChiTieu [name="txtChiTieuChiTiet"]').val());
+    //    if ($('[name="ListChiTieuChiTiet"]').val() == null || $('[name="ListChiTieuChiTiet"]').val() == "") {
+    //        $(".formChiTieu #btnchiachitieuchitiet").removeClass("fa-arrow-circle-down");
+    //        $(".formChiTieu #btnchiachitieuchitiet").addClass("fa-exclamation-triangle");
+    //        $(".formChiTieu #btnchiachitieuchitiet").css("color", "red");
+    //    }
+    //    else if (chitieucu != chitieumoi) {
+    //        $(".formChiTieu #btnchiachitieuchitiet").removeClass("fa-arrow-circle-down");
+    //        $(".formChiTieu #btnchiachitieuchitiet").addClass("fa-exclamation-triangle");
+    //        $(".formChiTieu #btnchiachitieuchitiet").css("color", "red");
+    //    }
+    //    else {
+    //        var tansuatcu = $(".formChiTieu .txtTanSuatChiTiet").data("tansuatcu");
+    //        var tansuatmoi = $(".formChiTieu .txtTanSuatChiTiet").val();
+    //        if (tansuatcu != tansuatmoi) {
+    //            $(".formChiTieu #btnchiachitieuchitiet").removeClass("fa-arrow-circle-down");
+    //            $(".formChiTieu #btnchiachitieuchitiet").addClass("fa-exclamation-triangle");
+    //            $(".formChiTieu #btnchiachitieuchitiet").css("color", "red");
+    //        }
+    //    }
+    //} else {
+
+    //}
+}
+
+function ShowTimeLineInlineChiTiet() {
+    let elID = $(`[name="IDCongViecModal"]`);
+    let elBatDau = $(`[name="txtNgayBatDauChiTiet"]`);
+    let elKetThuc = $(`[name="txtNgayKetThucChiTiet"]`);
+    let elMucTieu = $(`[name="txtChiTieuChiTiet"]`);
+    let elTanSuat = $(`[name="txtTanSuatChiTiet"]`);
+    let elListChiTieu = $(`[name="ListChiTieuChiTiet"]`);
+    let elButtonChiaChiTieu = $('.btnchiachitieuchitiet');
+    var ngaychon = `${elBatDau.val()}-${elKetThuc.val()}`;
+    var checkhaschild = false;
+    Loading();
+    var checkdachia = false;
+    if (elButtonChiaChiTieu.hasClass("fa-exclamation-triangle")) {
+        checkdachia = false;
+    }
+    else {
+        checkdachia = true;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/CongViecDuAn/ShowTimeline',
+        data: {
+            id: elID.val(), datechoice: ngaychon, chitieu: elMucTieu.val(),
+            tansuat: elTanSuat.val(), checkdachia: checkdachia,
+            strlistdachia: elListChiTieu.val(),
+            checkhaschild: checkhaschild
+        },
+        cache: false,
+        success: function (response) {
+            RemoveLoading();
+            $('#myModalCongViec .modal-title').html($language['bsc.label.chiachitieu']);
+            $('#myModalCongViec .modal-body').html(response);
+
+            $('#myModalCongViec .modal-body .btnLuuBaoCao').attr('onclick', `return apdungtiendochitiet();`);
+
+            $('.tiendochitieu').onlyNumber({
+                digits: 3,
+                allowDecimalPadding: false
+            });
+            var nam = NVParseFloat(elMucTieu.val());
+            $('.tiendochitieu').keyup(function () {
+                if (this.value == "") {
+                    this.value = 0;
+                }
+
+                var newvalue = NVParseFloat($(this).val());
+                if ($(this).val() == "") {
+                    newvalue = 0;
+                }
+
+                var sum = 0;
+
+                if ($(".editselHinhThuc").val() == "0") {
+                    $(".tiendochitieu").not(this).each(function () {
+                        if ($(this).val() != "" && $(this).val() != "0") {
+                            sum = sum + NVParseFloat($(this).val());
+                        }
+                    });
+                    var sumcheck = NVParseFloatDec((nam - sum), 3);
+                    if (NVParseFloat($(this).val()) > sumcheck) {
+                        newvalue = sumcheck;
+                        $(this).val(newvalue);
+                        $(".tiendochitieu").removeClass("inputdanger");
+                        $("#errornumberreport").hide();
+                    }
+                    else if (NVParseFloat($(this).val()) < sumcheck) {
+                        $(".tiendochitieu").addClass("inputdanger");
+                        $("#errornumberreport").html($language['bsc.label.conthieu'] + " " + NVParseFloatDec((nam - (sum + NVParseFloat($(this).val()))), 3));
+                        $("#errornumberreport").show();
+                    }
+                    else {
+                        $(".tiendochitieu").removeClass("inputdanger");
+                        $("#errornumberreport").hide();
+                    }
+                }
+                else if ($(".editselHinhThuc").val() == "1") {
+                    var sochia = $(".edittablebsc tbody tr").length;
+                    var newvalue = NVParseFloat($(this).val());
+                    if ($(this).val() == "") {
+                        newvalue = 0;
+                    }
+                    var sum = NVParseFloat("0");
+                    $(".tiendochitieu").not(this).each(function () {
+                        if ($(this).val() != "" && $(this).val() != "0") {
+                            sum = sum + NVParseFloat($(this).val());
+                        }
+                    });
+                    var sumcheck = NVParseFloatDec((nam * sochia - sum), 3);
+                    if (NVParseFloat($(this).val()) > sumcheck) {
+                        newvalue = sumcheck;
+                        $(this).val(newvalue);
+                        $(".tiendochitieu").removeClass("inputdanger");
+                        $("#errornumberreport").hide();
+                    }
+                    else if (NVParseFloat($(this).val()) < sumcheck) {
+                        $(".tiendochitieu").addClass("inputdanger");
+                        $("#errornumberreport").html($language['bsc.label.conthieu'] + " " + NVParseFloatDec((sumcheck - NVParseFloat($(this).val())), 3));
+                        $("#errornumberreport").show();
+                    }
+                    else {
+                        $(".tiendochitieu").removeClass("inputdanger");
+                        $("#errornumberreport").hide();
+                    }
+                }
+                else if ($(".editselHinhThuc").val() == "2") {
+                    var sum = NVParseFloat($(".tiendochitieu").last().val());
+                    var sochia = $(".edittablebsc tbody tr").length;
+
+                    if ($('.tiendochitieu').index(this) == sochia - 1) {
+                        var newvalue = NVParseFloat($(this).val());
+                        if ($(this).val() == "") {
+                            newvalue = 0;
+                        }
+
+                        if (NVParseFloatDec(sum, 3) != NVParseFloatDec(nam, 3)) {
+                            $(".tiendochitieu").addClass("inputdangerchitiet");
+                            $("#errornumberreport").html($language['bsc.label.conthieu'] + " " + NVParseFloatDec((NVParseFloatDec(nam, 3) - NVParseFloatDec(sum, 3)), 3));
+                            $("#errornumberreport").show();
+                        }
+                        else {
+                            $(".tiendochitieu").removeClass("inputdangerchitiet");
+                            $("#errornumberreport").hide();
+                        }
+
+                        var valuechange = NVParseFloat($(this).val());
+                        if (valuechange > nam) {
+                            $(this).val(nam);
+                            $(".tiendochitieu").removeClass("inputdangerchitiet");
+                            $("#errornumberreport").hide();
+                        }
+                    }
+                }
+            });
+            $(".editselHinhThuc").change(function () {
+                autodiv();
+            });
+            $('#myModalCongViec').modal('show');
+        },
+        error: function () {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loitai']);
+
+        }
+    });
+    return false;
+}
+
+function autodiv() {
+
+    var sochia = $(".tiendochitieu").length;
+    var nam = NVParseFloat($("#MucTieu").val());
+    if ($(".editselHinhThuc").val() == "0") {
+        var sumnam = 0;
+
+        var giatrinew = NVParseFloatDec(nam / sochia, 3);
+        $(".tiendochitieu").val(giatrinew);
+        sumnam = giatrinew * (sochia - 1);
+        $(".tiendochitieu").last().val(NVParseFloatDec(nam - sumnam, 3));
+    }
+    else if ($(".editselHinhThuc").val() == "1") {
+        $(".tiendochitieu").val(nam);
+    }
+    else if ($(".editselHinhThuc").val() == "2") {
+        var namcong = nam / sochia;
+        var namfinal = 0;
+        $(".edittablebsc tbody tr").each(function (index) {
+
+            namfinal = namfinal + namcong;
+
+            if (index == sochia - 1) {
+                namfinal = nam;
+            }
+            $(this).find(".tiendochitieu").val(namfinal.mathRound(2));
+        });
+    }
+    $(".tiendochitieu").removeClass("inputdanger");
+    $("#errornumberreport").hide();
+    return false;
+}
+
+function apdungtiendochitiet() {
+
+    if ($("#errornumberreport").css("display") != "none") {
+        alert($language['bsc.label.chialaichitieu']);
+        RemoveLoading();
+        return false;
+    }
+
+
+    let elMucTieu = $(`[name="txtChiTieuChiTiet"]`);
+    let elTanSuat = $(`[name="txtTanSuatChiTiet"]`);
+    let elHinhThuc = $(`[name="txtHinhThucChiTiet"]`);
+    let elListChiTieu = $(`[name="ListChiTieuChiTiet"]`);
+    let elButtonChiaChiTieu = $('.btnchiachitieuchitiet');
+
+
+    elListChiTieu.val('');
+    var listtemp = "";
+    $(".tiendochitieu").each(function () {
+        listtemp += $(this).attr(`data-ngay`) + "-" + $(this).val() + ":";
+    });
+    elListChiTieu.val(listtemp);
+    elHinhThuc.val($(".editselHinhThuc").val());
+    elMucTieu.data("chitieucu", elMucTieu.val());
+    elTanSuat.data("tansuatcu", elTanSuat.val());
+    elButtonChiaChiTieu.addClass("fa-arrow-circle-down");
+    elButtonChiaChiTieu.removeClass("fa-exclamation-triangle");
+    elButtonChiaChiTieu.css("color", "#ed7d31");
+
+    $('#myModalCongViec .modal-dialog').removeClass('medium');
+    $('#myModalCongViec .modal-title').html('');
+    $('#myModalCongViec .modal-body').html('');
+    $('#myModalCongViec').modal('hide');
+}
+function HideModalChiTiet() {
+    $('#myModalChiTietDuAn .modal-dialog').removeClass('medium');
+    $('#myModalChiTietDuAn .modal-title').html('');
+    $('#myModalChiTietDuAn .modal-body').html('');
+    $('#myModalChiTietDuAn').modal('hide');
+    $('.modal-backdrop').remove();
+}
+function AddRowNganSach() {
+    let rowID = 'row-' + Math.random().toString().replace('.', '');
+    ///Get template row
+    var rowCongViec = $($('#templateTrNganSach').html().replaceAll('{rowid}', rowID));
+    $(".tablengansach tbody").append(rowCongViec);
+    var ngayngansach = rowCongViec.find(`[name="NgayNganSach"]`);
+    ngayngansach.on("click", function (e) {
+        if (!$(this).data('DateTimePicker')) {
+            $(this).datetimepicker({
+                format: 'DD/MM/YYYY',
+                locale: 'vi',
+                useCurrent: true,
+                widgetParent: $('.tablengansach'),
+                sideBySide: true
+            });
+            $(this).data("DateTimePicker").show();
+        }
+    });
+    ngayngansach.on("dp.change", function (e) {
+        $(this).closest("tr").find(".btnLuuBaoCao").show();
+    });
+
+    rowCongViec.find('.textnoidung').each(function () {
+        $(this).css("height", "auto");
+    }).on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    rowCongViec.find('.maskmoney').onlyNumber({
+        digits: 3,
+        allowDecimalPadding: false
+    });
+    rowCongViec.find(".maskmoney,.textnoidung").keyup(function () {
+        $(this).parents("tr").find(".btnLuuBaoCao").show();
+    });
+    rowCongViec.find(".maskmoney,.textnoidung").bind("paste", function (e) {
+        $(this).parents("tr").find(".btnLuuBaoCao").show();
+    });
+}
+function KhoiTaoTableNganSach() {
+    $(".tablengansach tbody tr").each(function () {
+        var rowCongViec = $(this);
+        var ngayngansach = rowCongViec.find(`[name="NgayNganSach"]`);
+        ngayngansach.on("click", function (e) {
+            if (!$(this).data('DateTimePicker')) {
+                $(this).datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    locale: 'vi',
+                    useCurrent: true,
+                    widgetParent: $('.tablengansach'),
+                    sideBySide: true
+                });
+                $(this).data("DateTimePicker").show();
+            }
+        });
+        ngayngansach.on("dp.change", function (e) {
+            $(this).closest("tr").find(".btnLuuBaoCao").show();
+        });
+
+        rowCongViec.find('.textnoidung').each(function () {
+            $(this).css("height", "auto");
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        rowCongViec.find('.maskmoney').onlyNumber({
+            digits: 3,
+            allowDecimalPadding: false
+        });
+        rowCongViec.find(".maskmoney,.textnoidung").keyup(function () {
+            $(this).parents("tr").find(".btnLuuBaoCao").show();
+        });
+        rowCongViec.find(".maskmoney,.textnoidung").bind("paste", function (e) {
+            $(this).parents("tr").find(".btnLuuBaoCao").show();
+        });
+    });
+};
+function RemoveBaoCaoNganSach(item) {
+    var rowTable = $(item).closest('tr');
+    var idbaocao = rowTable.data('idrow');
+    if (idbaocao != undefined && idbaocao.indexOf("row-") != -1) {
+        rowTable.remove();
+    }
+    else {
+        Loading();
+        $.ajax({
+            url: '/CongViecDuAn/XoaNganSach',
+            data: { idbaocao: idbaocao },
+            type: 'POST',
+            success: function (data) {
+                RemoveLoading();
+                if (data.status == true) {
+                    Notify('success', data.msg);
+                    rowTable.remove();
+                    firstload = true;
+                    LoadTable();
+                } else {
+                    Notify('warning', data.msg);
+                }
+            },
+            error: function (a, b, c) {
+                RemoveLoading();
+                Notify('warning', $language['bsc.msg.loixoacongviec']);
+            }
+        });
+    }
+}
+function LuuBaoCaoNganSach(item) {
+    const rowTable = $(item).closest("tr");
+    if (rowTable.length == 0) {
+        alert('Error');
+        return false;
+    }
+
+    var url = '/CongViecDuAn/SaveBaoCaoNganSach';
+    var id = $("#IDCongViecModal").val();
+    var idbaocao = rowTable.attr("data-idrow");
+    var soluong = 0;
+
+    soluong = rowTable.find(".ngansachthucte").val().replace(/,/g, '');
+    var ngayngansach = rowTable.find(`[name="NgayNganSach"]`).val();
+    var danhgia = rowTable.find(".textnoidung").val();
+    Loading();
+
+
+    var formData = new FormData();
+    formData.append('idcongviec', id);
+    formData.append('idbaocao', idbaocao);
+    formData.append('ngay', ngayngansach);
+    formData.append('soluong', soluong);
+    formData.append('danhgia', danhgia);
+
+    var strtenfile = "";
+    rowTable.find(`.fileList .tenfile[data-file]`).each(function () {
+        strtenfile += $(this).attr('data-file') + "####";
+    });
+    formData.append('tenfile', strtenfile);
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        dataType: "json",
+        success: function (response) {
+            RemoveLoading();
+            if (response.status) {
+                // HideModal();
+                Notify('success', $language['bsc.msg.daluubaocao']);
+                var idnew = response.ten;
+                rowTable.attr("data-idrow", idnew);
+                rowTable.find(".btnLuuBaoCao").hide();
+                firstload = true;
+                LoadTable();
+            } else {
+                Notify('warning', response.msg);
+            }
+        },
+        processData: false,
+        contentType: false,
+        error: function () {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loiluu']);
+        }
+    });
+}
+
+
+//#region Upload File Chung
+function showModalFileShared(item) {
+
+    let elRow = $(item).closest("tr");
+    var idrow = elRow.attr('data-idrow');
+    var fileHtml = elRow.find('.listFiles').html();
+    if (elRow.find('[name="TenCongViec"]').length > 0) {
+        $('#myModalUploadFileShared .modal-title').html('' + $language['bsc.btn.tailieu'] + ': ' + elRow.find('[name="TenCongViec"]').val());
+    } else {
+        $('#myModalUploadFileShared .modal-title').html($language['bsc.title.filebaocao']);
+    }
+    $('#myModalUploadFileShared .modal-body').html(`<div id="listFileTaiLieu">${fileHtml}</div>`);
+    $('#myModalUploadFileShared .modal-body').attr("data-idrow", idrow);
+    $('#myModalUploadFileShared').modal('show');
+
+    return false;
+}
+function BrowseServersShared(item) {
+    let elModal = $(item).closest(".modal-body");
+    var idbc = elModal.attr('data-idrow');
+    var popupWinWidth = 1000;
+    var popupWinHeight = 800;
+    var left = (screen.width - popupWinWidth) / 2;
+    var top = (screen.height - popupWinHeight) / 4;
+
+    var t = window.open('/FileManager/?multi=true', 'File Manager',
+        'resizable=yes, width=' + popupWinWidth
+        + ', height=' + popupWinHeight + ', top='
+        + top + ', left=' + left);
+    window.selectedFiles = function (files) {
+        SetFileFieldShare(idbc, files);
+    }
+
+    return false;
+}
+function SetFileFieldShare(idbc, uniqueFiles) {
+    let elModal = $(".modal-body[data-idrow='" + idbc + "']");
+    var elRow = $('tr[data-idrow="' + idbc + '"]');
+
+    var length = uniqueFiles.length;
+    for (var i = 0; i < length; i++) {
+        fileUrl = uniqueFiles[i];
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = getFileName(fileUrl);
+        elModal.find('.fileList').append('<li class="tenfile" data-file="' + fileUrl + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeFileTaiLieuShared(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+        elRow.find('.fileList').append('<li class="tenfile" data-file="' + fileUrl + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeFileTaiLieuShared(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+    }
+    elRow.find(".btn-file, .btnfile").html($language['bsc.msg.cofiletailieu'].f(elRow.find('.tenfile').length));
+    elRow.attr('data-edit', 'True');
+    elRow.find(".btnLuuBaoCao").show();
+}
+function AddUrlShared(item) {
+    let elModal = $(item).closest(".modal-body");
+    var idbc = elModal.attr('data-idrow');
+    var elRow = $('tr[data-idrow="' + idbc + '"]');
+    var fileUrl = prompt($language['bsc.title.nhapurl'], "");
+    if (fileUrl != null) {
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = fileUrl;
+        elModal.find('.fileList').append('<li class="tenfile" data-file="' + fileName + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeFileTaiLieuShared(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+        elRow.find('.fileList').append('<li class="tenfile" data-file="' + fileName + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return removeFileTaiLieuShared(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+
+    }
+
+    elRow.find(".btn-file, .btnfile").html($language['bsc.msg.cofiletailieu'].f(elRow.find('.tenfile').length));
+    elRow.attr('data-edit', 'True');
+    elRow.find(".btnLuuBaoCao").show();
+    return false;
+}
+function removeFileTaiLieuShared(item) {
+    if (confirm($language['bsc.msg.xoafile'])) {
+        let elModal = $(item).closest(".modal-body");
+        var idbc = elModal.attr('data-idrow');
+        $(item).closest('.tenfile').remove();
+        let elRow = $('tr[data-idrow="' + idbc + '"]');
+        elRow.find('.listFiles').html($('#listFileTaiLieu').html());
+        elRow.find(".btn-file, .btnfile").html($language['bsc.msg.cofiletailieu'].f(elRow.find('.tenfile').length));
+        elRow.attr('data-edit', 'True');
+        elRow.find(".btnLuuBaoCao").show();
+    }
+    return false;
+}
+//#endregion
+
+function UpdateHoanThanh(item, idcongviec) {
+    event.stopPropagation();
+    let state = 'khonghoanthanh';
+    if (!$(item).hasClass("active")) {
+        state = 'hoanthanh';
+    }
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/UpdateHoanThanh',
+        cache: false,
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            id: idcongviec,
+            state: state
+        },
+        success: function (response) {
+            
+            RemoveLoading();
+            if (response.status) {
+                Notify('success', response.msg);
+                firstload = true;
+                LoadTable();
+                RemoveLoading();
+                if ($(`.box-duan-congviec[data-id="${idcongviec}"]`).length > 0) {
+                    //ThemMoiCongViec(id, $(".activemuctieu[data-idmuctieu]").attr("data-idmuctieu"),'update');
+                    ThemMoiDuAn('' + idcongviec + '', '/DuAn/Detail', $(".activemuctieu[data-idmuctieu]").attr("data-idmuctieu"));
+                }
+                if ($(`.box-kehoach-congviec[data-id="${idcongviec}"]`).length > 0) {
+                    XemCongViec(idcongviec);
+                }
+                //pushDataToSignalR({ site: siteName, keHoachID: id, mucTieuID: $('#txtIDMucTieu').val(), name: 'stateapproved', data: response });
+            } else {
+                Notify('warning', response.msg);
+            }
+
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+        }
+    });
+}
+
+function autoheighttextthaoluan() {
+    $('.textnoidungthaoluan').each(function () {
+        $(this).css("height", "" + (this.scrollHeight) + "px");
+    });
+    $('.textnoidungthaoluan').on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        var heightheader = $("#myModalChiTietDuAn .modal-header").outerHeight();
+        var heightfooter = $("#myModalChiTietDuAn .modal-footer").outerHeight();
+        $("#myModalChiTietDuAn .modal-body").css("height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+        $("#myModalChiTietDuAn .modal-body").css("max-height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+    }).on('keyup', function (e) {
+        if (e.ctrlKey) {
+            if (e.keyCode == 65 || e.keyCode == 97) {
+                $(this).select();
+                var heightheader = $("#myModalChiTietDuAn .modal-header").outerHeight();
+                var heightfooter = $("#myModalChiTietDuAn .modal-footer").outerHeight();
+                $("#myModalChiTietDuAn .modal-body").css("height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+                $("#myModalChiTietDuAn .modal-body").css("max-height", "calc(100vh - " + (heightheader + heightfooter) + "px)");
+                return false;
+            }
+        }
+    });
+}
+
+function ChangeLabelChiTiet(e, label) {
+    $(e).closest('.btn-group').find('button')
+        .attr('class', `label ${label} dropdown-toggle`);
+    $(e).closest('.btn-group').find('button').html($language[`bsc.text.mucdouutien.${label}`]);
+    return false;
+}
+function Export() {
+    $('#frmExport [name="datechoice"]').val($(".datepickerbsc").val());
+    $('#frmExport [name="selectbophan"]').val(idbophanselect);
+    $('#frmExport [name="idphutrach"]').val($("#txtIDCaNhan").val());
+    $('#frmExport [name="idbophan"]').val($("#txtIDBoPhan").val());
+    $('#frmExport [name="idmuctieu"]').val($("#txtIDMucTieu").val());
+    $('#frmExport [name="phutrach"]').val($("#phutrach").val());
+    $('#frmExport [name="yearexport"]').val($("#selectnamDuAn").val());
+    $('#frmExport [name="hienthiexport"]').val($(".selecttansuat").val());
+    $('#frmExport').submit();
+    return false;
+}
+
+
+
+function Import() {
+
+    $('#frmImport [name="idmuctieu"]').val($("#txtIDMucTieu").val());
+    $('#frmImport [name="idduan"]').val(idduan);
+    $('#frmImport [name="selectbophan"]').val(idbophanselect);
+    $('#frmImport [name="idbophan"]').val($("#txtIDBoPhan").val());
+    $('#frmImport [name="idphutrach"]').val($("#txtIDCaNhan").val());
+    $('#frmImport [name="datechoice"]').val($(".datepickerbsc").val());
+    $('#frmImport [name="yearimport"]').val($("#selectnamDuAn").val());
+    $('#importModal').modal({
+        backdrop: 'static'
+    });
+    return false;
+}
+

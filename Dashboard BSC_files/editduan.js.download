@@ -1,0 +1,928 @@
+﻿function ThemMoiDuAn(id, type, idmuctieu) {
+    var idMucTieu = $(".activemuctieu[data-idmuctieu]").attr("data-idmuctieu");
+    if (idmuctieu != "") {
+        idMucTieu = idmuctieu;
+    }
+    let datechoice = $(".datepickerbsc").length > 0 ? $(".datepickerbsc").val() : "";
+    Loading();
+    $.ajax({
+        url: '/DuAn/Detail',
+        data: { idcongviec: id, idmuctieu: idMucTieu, selectbophan: idbophanselect, datechoice: datechoice },
+        type: 'GET',
+        success: function (data) {
+            $('#myModalChiTietDuAn .modal-content').html(data);
+            $('#myModalChiTietDuAn').modal('show');
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if ($(this).attr("href") == '#home') {
+                    $(".btnFormLuu").show();
+                }
+                else {
+                    $(".btnFormLuu").hide();
+                }
+            });
+
+            initDateTaskDuAn();
+
+            $('#myModalChiTietDuAn #NganSach').each(function () {
+                $(this).onlyNumber({
+                    digits: 3,
+                    allowDecimalPadding: false
+                });
+                const inputLength = $(this).val().length;
+                $(this).css('width', (inputLength + 0.5) + 'ch');
+                $(this).on('input', function () {
+                    const inputLength = $(this).val().length;
+                    $(this).css('width', (inputLength + 0.5) + 'ch');
+                });
+            })
+            if ($("#ID").val() != undefined && $("#ID").val() != "") {
+                TooltipNganSach();
+                let elProgressNganSach = $(".progressngansach");
+                elProgressNganSach.on("click", function (e) {
+                    $(this).hide();
+                    $(".groupngansach").show();
+                    $(this).closest(".divInfoTienDo").find("input").focus();
+                });
+                $('#myModalChiTietDuAn #NganSach').focusout(function () {
+                    let row = $(this).closest('.divInfoTienDo');
+                    var thisvalngansach = NVParseFloat($(this).val());
+                    let progresstemp = $(".progressngansach");
+                    let ngansachthuctetemp = NVParseFloat(progresstemp.attr("data-ngansachthucte"));
+                    let phantramngansach = thisvalngansach != 0 ? (ngansachthuctetemp / thisvalngansach) * 100 : 0;
+                    progresstemp.attr("title", progresstemp.attr("data-ngansachthucte") + "/" + $(this).val());
+                    progresstemp.find(".progress-bar").css("width", phantramngansach + "%");
+                    progresstemp.find("p").text(phantramngansach.toFixed(2) + "%");
+                    if (progresstemp.hasClass('tooltipstered')) {
+                        progresstemp.tooltipster('content', progresstemp.attr("data-ngansachthucte") + "/" + $(this).val());
+                    }
+                    else {
+                        progresstemp.tooltipster({
+                            contentAsHTML: true,
+                            interactive: true,
+                            arrow: true,
+                            theme: 'tooltipster-light',
+                            position: 'bottom',
+                            interactiveTolerance: 50
+                        });
+                    }
+                    $(this).hide();
+                    $(".groupngansach").hide();
+                    progresstemp.show();
+                });
+            }
+            //$("#myModalChiTietDuAn .divWrapPhuTrach .spantennguoihotro").click(function () {
+            //    LoadNhanVienSelect($('[name="NguoiPhuTrachIDParent"]'), $('[name="NguoiHoTroIDParent"]'), "pt", "", false);
+            //});
+
+            //$("#myModalChiTietDuAn .divWrapHoTro .spantennguoihotro").click(function () {
+            //    LoadNhanVienSelect($('[name="NguoiPhuTrachIDParent"]'), $('[name="NguoiHoTroIDParent"]'), "ht", "", false);
+            //});
+            initAliasName();
+
+            $(".form-chitietduan #MTCTID").select2({
+                width: '100%',
+                containerCssClass: 'select2customcontainer',
+                dropdownCssClass: 'select2custom'
+            });
+
+            $("div[contenteditable='true']:not(.cke_editable)").each(function () {
+                CKEDITOR.inline(this, {
+                    forcePasteAsPlainText: false,
+                    pasteFromWordRemoveStyles: false,
+                    pasteFromWordRemoveFontStyles: false,
+                    allowedContent: true,
+                    editorplaceholder: $language['bsc.label.vuilongnhapnoidung']
+                });
+            });
+
+            RemoveLoading();
+            const tableBody = document.getElementById('table-kanban').getElementsByTagName('tbody')[0];
+            new Sortable(tableBody, {
+                animation: 150,
+                onEnd: function (evt) {
+                    initIndexKanban();
+                }
+            });
+
+            initIndexKanban();
+            $(".tooltipduan:not(.tooltipstered)").each(function () {
+                var idtooltip = $(this).attr("data-idcongviec");
+                $(this).tooltipster({
+                    content: $(".contenttooltipduan" + idtooltip + "").html(),
+                    contentAsHTML: true,
+                    interactive: true,
+                    arrow: true,
+                    interactiveTolerance: 50,
+                    functionBefore: function (origin, continueTooltip) {
+                        continueTooltip();
+                        initAliasName();
+                    }
+                });
+            });
+            if (id == undefined || id == ''|| id == '0') {
+                
+                //$(".form-chitietduan #TenDuAn").focus();
+            }
+            setTimeout(function () {
+                var heightheader = $("#myModalChiTietDuAn .modal-header").outerHeight();
+                $("#myModalChiTietDuAn .modal-body").css("height", "calc(100vh - " + (heightheader) + "px)");
+                $("#myModalChiTietDuAn .modal-body").css("max-height", "calc(100vh - " + (heightheader) + "px)");
+
+            }, 100);
+        },
+        error: function (a, b, c) {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loiluu']);
+        }
+    });
+
+    return false;
+}
+//#region khởi tạo date chi tiết dự án
+function initDateTaskDuAn() {
+    $(`[name="txtNgayChoice"]`).each(function () {
+        $(this).click(function (event) {
+            event.stopPropagation();
+            $('.wrapNgayChoice').hide();
+            let txtDateShow = $(this);
+            let parentDiv = $(this).closest(".divNgayChoice");
+            var startinit = moment(txtDateShow.attr("data-start"), "DD/MM/YYYY");
+            var endinit = moment(txtDateShow.attr("data-end"), "DD/MM/YYYY");
+
+            let inputDateStart = parentDiv.find(`[name="txtNgayChoiceStart"]`);
+            let inputDateEnd = parentDiv.find(`[name="txtNgayChoiceEnd"]`);
+            let dateStart = parentDiv.find('.CalendarNgayChoiceStart');
+            let dateEnd = parentDiv.find('.CalendarNgayChoiceEnd');
+            if (!dateStart.data('DateTimePicker')) {
+                dateStart.datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    locale: 'vi',
+                    inline: true,
+                    sideBySide: true,
+                    defaultDate: startinit
+                });
+            }
+
+            if (!dateEnd.data('DateTimePicker')) {
+                dateEnd.datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    locale: 'vi',
+                    inline: true,
+                    sideBySide: true,
+                    defaultDate: endinit
+                });
+            }
+            ////set min max date start
+            let ngayKetThuc = dateEnd.data("DateTimePicker").date();
+            var mindatechild = txtDateShow.attr("data-startchild");
+            if (mindatechild != undefined && mindatechild != "") {
+                ngayKetThuc = moment(mindatechild, "DD/MM/YYYY");
+            }
+            if (ngayKetThuc != null && ngayKetThuc != undefined && ngayKetThuc.isValid()) {
+                dateStart.data("DateTimePicker").maxDate((ngayKetThuc).endOf('day'));
+            }
+
+            var mindateparent = txtDateShow.attr("data-startparent");
+            if (mindateparent != undefined && mindateparent != "") {
+                let ngaybatdauparent = moment(mindateparent, "DD/MM/YYYY");
+                dateStart.data("DateTimePicker").minDate((ngaybatdauparent).endOf('day'));
+            }
+            ////set min max date end
+            let ngayBatDau = dateStart.data("DateTimePicker").date();
+            var maxdatechild = txtDateShow.attr("data-endchild");
+            if (maxdatechild != undefined && maxdatechild != "") {
+                ngayBatDau = moment(maxdatechild, "DD/MM/YYYY");
+            }
+            if (ngayBatDau != null && ngayBatDau != undefined && ngayBatDau.isValid()) {
+                dateEnd.data("DateTimePicker").minDate((ngayBatDau).endOf('day'));
+            }
+
+            var maxdateparent = txtDateShow.attr("data-endparent");
+            if (maxdateparent != undefined && maxdateparent != "") {
+                let ngayketthucparent = moment(maxdateparent, "DD/MM/YYYY");
+                dateEnd.data("DateTimePicker").maxDate((ngayketthucparent).endOf('day'));
+            }
+            dateStart.on('dp.change', function (e) {
+                inputDateStart.val(e.date.format('DD/MM/YYYY'));
+                let ngayBatDau = dateStart.data("DateTimePicker").date();
+                var maxdatechild = txtDateShow.attr("data-endchild");
+                if (maxdatechild != undefined && maxdatechild != "") {
+                    ngayBatDau = moment(maxdatechild, "DD/MM/YYYY");
+                }
+                if (ngayBatDau != null && ngayBatDau != undefined && ngayBatDau.isValid()) {
+                    dateEnd.data("DateTimePicker").minDate((ngayBatDau).endOf('day'));
+                }
+
+                var dateRutGon = rutGonDate(dateStart.data("DateTimePicker").date(), dateEnd.data("DateTimePicker").date());
+                txtDateShow.text(dateRutGon);
+                ValidDateTime();
+            });
+            dateEnd.on('dp.change', function (e) {
+                inputDateEnd.val(e.date.format('DD/MM/YYYY'));
+
+                let ngayKetThuc = dateEnd.data("DateTimePicker").date();
+                var mindatechild = txtDateShow.attr("data-startchild");
+                if (mindatechild != undefined && mindatechild != "") {
+                    ngayKetThuc = moment(mindatechild, "DD/MM/YYYY");
+                }
+                if (ngayKetThuc != null && ngayKetThuc != undefined && ngayKetThuc.isValid()) {
+                    dateStart.data("DateTimePicker").maxDate((ngayKetThuc).endOf('day'));
+                }
+                var dateRutGon = rutGonDate(dateStart.data("DateTimePicker").date(), dateEnd.data("DateTimePicker").date());
+                txtDateShow.text(dateRutGon);
+                ValidDateTime();    
+            });
+
+            let wrapChoice = $(this).closest(".divNgayChoice").find(".wrapNgayChoice");
+            wrapChoice.show();
+
+            ///new left
+            if ((wrapChoice.offset().left + wrapChoice.outerWidth() > $(window).width())) {
+                let posLeft = $(window).width() - wrapChoice.outerWidth() - 15;
+                let plusNewLeft = wrapChoice.position().left + (posLeft - wrapChoice.offset().left);
+                wrapChoice.css('left', plusNewLeft);
+                //console.log(wrapChoice.position().left, wrapChoice.offset().left, posLeft);
+            }
+
+            ///new top
+            if ((wrapChoice.offset().top + wrapChoice.outerHeight() > $(window).height())) {
+                let posTop = $(window).height() - wrapChoice.outerHeight() - 15;
+                let plusNewTop = wrapChoice.position().top + (posTop - wrapChoice.offset().top);
+                wrapChoice.css('top', plusNewTop);
+                //console.log(wrapChoice.position().left, wrapChoice.offset().left, posLeft);
+            }
+
+            $(".wrapNgayChoice").on("click", function (event) {
+                event.stopPropagation();
+            });
+        });
+    });
+
+}
+function rutGonDate(startDate, endDate) {
+    let strDate = "";
+    if (startDate.year() === endDate.year()) {
+        if (startDate.year() === new Date().getFullYear()) {
+            if (startDate.month() === endDate.month()) {
+                if (startDate.isSame(endDate, 'day')) {
+                    strDate = startDate.format('DD/MM');
+                }
+                else {
+                    strDate = startDate.format('DD') + ' - ' + endDate.format('DD/MM');
+                }
+            } else {
+                strDate = startDate.format('DD/MM') + ' - ' + endDate.format('DD/MM');
+            }
+        }
+        else {
+            if (startDate.month() === endDate.month()) {
+                if (startDate.isSame(endDate, 'day')) {
+                    strDate = startDate.format('DD/MM/YYYY');
+                }
+                else {
+                    strDate = startDate.format('DD') + ' - ' + endDate.format('DD/MM/YYYY');
+                }
+            } else {
+                strDate = startDate.format('DD/MM') + ' - ' + endDate.format('DD/MM/YYYY');
+            }
+        }
+    } else {
+        // Không trùng năm
+        strDate = startDate.format('DD/MM/YYYY') + ' - ' + endDate.format('DD/MM/YYYY');
+    }
+    return strDate;
+}
+function ValidDateTime() {
+
+    let datestarts = [];
+    let dateends = [];
+    $('.divNgayChoice.divNgayChoiceCongViecCon').each(function () {
+
+        let datestartStr = $(this).find("[name='txtNgayChoiceStart']").val();
+        let datestart = moment(datestartStr, 'DD/MM/YYYY');
+        datestarts.push(datestart);
+
+        let dateendStr = $(this).find("[name='txtNgayChoiceEnd']").val();
+        let dateend = moment(dateendStr, 'DD/MM/YYYY');
+        dateends.push(dateend);
+
+        $('.divNgayChoice.divNgayChoiceCongViecCon [name="txtNgayChoice"]').attr("data-startparent", $(".divNgayChoice.divNgayChoiceDuAn [name='txtNgayChoiceStart']").val());
+        $('.divNgayChoice.divNgayChoiceCongViecCon [name="txtNgayChoice"]').attr("data-endparent", $(".divNgayChoice.divNgayChoiceDuAn [name='txtNgayChoiceEnd']").val());
+    });
+    if (datestarts.length > 0) {
+        let minDate = moment.min(datestarts); // Tìm ngày nhỏ nhất
+        $(".divNgayChoice.divNgayChoiceDuAn [name='txtNgayChoice']").attr("data-startchild", minDate.format('DD/MM/YYYY'));
+    }
+    if (dateends.length > 0) {
+        let maxDate = moment.max(dateends); // Tìm ngày nhỏ nhất
+        $(".divNgayChoice.divNgayChoiceDuAn [name='txtNgayChoice']").attr("data-endchild", maxDate.format('DD/MM/YYYY'));
+    }
+
+}
+//#endregion
+//#region Kanban
+function AddKanbanColumn(e) {
+    let html = $('#templateDuAn').html();
+    $('.table-kanban tbody').append(html);
+    $('.kanbanColumns-none').addClass('hidden');
+    initIndexKanban();
+    return false;
+}
+
+function RemoveTableKanbanColumn(e, id) {
+
+    if (id == 0) {
+        $(e).closest('tr').remove();
+        if ($('.table-kanban tbody tr:not(.kanbanColumns-none)').length == 0) {
+            $('.kanbanColumns-none').removeClass('hidden');
+        } else {
+            $('.kanbanColumns-none').addClass('hidden');
+        }
+        initIndexKanban();
+    } else {
+        Loading();
+        $.ajax({
+            type: "POST",
+            url: '/CongViecDuAn/RemoveKanbanColumn',
+            data: { id: id, type: '' },
+            dataType: "json",
+            success: function (response) {
+                RemoveLoading();
+                if (response.status) {
+                    $(e).closest('tr').remove();
+                    if ($('.table-kanban tbody tr:not(.kanbanColumns-none)').length == 0) {
+                        $('.kanbanColumns-none').removeClass('hidden');
+                    } else {
+                        $('.kanbanColumns-none').addClass('hidden');
+                    }
+                    initIndexKanban();
+                } else {
+                    Notify('warning', response.msg);
+                }
+            },
+            error: function () {
+                RemoveLoading();
+            }
+        });
+    }
+}
+
+function initIndexKanban() {
+    $('table.table-kanban tbody tr:not(.kanbanColumns-none)').each(function (index) {
+        $(this).find('.stt').html(index + 1);
+        $(this).find('[data-col="ID"]').attr('name', `Kanbans[${index}].ID`);
+        $(this).find('[data-col="ViTri"]').attr('name', `Kanbans[${index}].ViTri`).val(index + 1);
+        $(this).find('[data-col="TenCot"]').attr('name', `Kanbans[${index}].TenCot`);
+        $(this).find('[data-col="TienDo"]').attr('name', `Kanbans[${index}].TienDo`);
+        $(this).find('[data-col="TrangThai"]').attr('name', `Kanbans[${index}].TrangThai`);
+    });
+}
+//#endregion
+//#region Thêm công việc con
+function AddCongViecCon() {
+    let rowID = 'row-' + Math.random().toString().replace('.', '');
+    var temphtml = $($("#templateRowDuAnCongViecCon").html().replaceAll('{rowid}', rowID));
+
+    let counttr = $("table.tablecongvieccon > tbody > tr").length + 1;
+    const inputLength = (counttr + "").length + 1;
+    temphtml.find(".tdTenCongViecCon strong").text(counttr + ". ").css('width', (inputLength + 0.5) + 'ch');
+
+    $("table.tablecongvieccon > tbody").append(temphtml);
+    temphtml.find(".tdTenCongViecCon input").focus(function () {
+        if ($(this).val() == 'Tên Công Việc') {
+            $(this).select();
+        }
+    });
+    initAliasName();
+    var hasFooterChild = false;
+    if ($("[name='selDuAn']").length > 0) {
+        hasFooterChild = true;
+    }
+    //$(".tablecongvieccon .divWrapPhuTrach .spantennguoihotro").click(function () {
+    //    let rootParent = $(this).closest(".divWrapPhuTrach");
+    //    LoadNhanVienSelect(rootParent.find('[name="NguoiPhuTrachIDCongViecCon"]'), null, "pt", "", hasFooterChild);
+    //});
+    var dtnow = new Date();
+    let startdate = $(".divNgayChoiceDuAn [name='txtNgayChoiceStart']").val();
+    let enddate = $(".divNgayChoiceDuAn [name='txtNgayChoiceEnd']").val();
+
+    const firstDay = moment(startdate, "DD/MM/YYYY");
+    const lastDay = moment(enddate, "DD/MM/YYYY");
+    if (dtnow >= firstDay && dtnow <= lastDay) {
+        var textDate = dtnow.getDate() + "/" + (dtnow.getMonth() + 1) + "/" + dtnow.getFullYear();
+        temphtml.find('[name="txtNgayChoice"]').attr("data-start", textDate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-end", textDate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-startparent", startdate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-endparent", enddate);
+
+        var dateRutGon = rutGonDate(moment(textDate, "DD/MM/YYYY"), moment(textDate, "DD/MM/YYYY"));
+        temphtml.find('[name="txtNgayChoice"]').text(dateRutGon);
+        temphtml.find('[name="txtNgayChoiceStart"]').val(textDate);
+        temphtml.find('[name="txtNgayChoiceEnd"]').val(textDate);
+    }
+    else {
+
+        temphtml.find('[name="txtNgayChoice"]').attr("data-start", startdate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-end", startdate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-startparent", startdate);
+        temphtml.find('[name="txtNgayChoice"]').attr("data-endparent", enddate);
+
+        var dateRutGon = rutGonDate(moment(startdate, "DD/MM/YYYY"), moment(startdate, "DD/MM/YYYY"));
+        temphtml.find('[name="txtNgayChoice"]').text(dateRutGon);
+        temphtml.find('[name="txtNgayChoiceStart"]').val(startdate);
+        temphtml.find('[name="txtNgayChoiceEnd"]').val(startdate);
+    }
+    if ($(".form-chitietduan").length > 0) {
+        
+    }
+    else {
+        //var dtnow = new Date();
+        //let startdate = $("#myModalChiTietDuAn [name='txtNgayBatDauChiTiet']").val();
+        //let enddate = $("#myModalChiTietDuAn [name='txtNgayKetThucChiTiet']").val();
+        //const firstDay = moment(startdate, "DD/MM/YYYY");
+        //const lastDay = moment(enddate, "DD/MM/YYYY");
+        //if (dtnow >= firstDay && dtnow <= lastDay) {
+        //    var textDate = dtnow.getDate() + "/" + (dtnow.getMonth() + 1) + "/" + dtnow.getFullYear();
+        //    temphtml.find('[name="NgayBatDauCongViecCon"]').val(textDate);
+        //    temphtml.find('[name="NgayKetThucCongViecCon"]').val(textDate);
+        //}
+        //else {
+        //    temphtml.find('[name="NgayBatDauCongViecCon"]').val(startdate);
+        //    temphtml.find('[name="NgayKetThucCongViecCon"]').val(startdate);
+        //}
+    }
+    initDateTaskDuAn();
+    //initDateCongViecCon();
+}
+
+function RemoveCongViecCon(e) {
+
+    Lobibox.alert('warning', {
+        msg: $language['bsc.msg.xoacongviec'],
+        buttons: {
+            yes: {
+                'class': 'btn btn-danger',
+                closeOnClick: true,
+                text: $language['bsc.msg.cotieptuc']
+            },
+            no: {
+                'class': 'btn btn-primary',
+                closeOnClick: true,
+                text: $language['bsc.msg.khongdonglai']
+            }
+        },
+        callback: function (lobibox, type) {
+            if (type === 'yes') {
+
+                $(e).closest('tr').remove();
+
+            }
+        }
+    });
+
+    return false;
+}
+
+//#endregion
+function LuuDuAn() {
+   
+    
+    if ($(".form-chitietduan [name='TenDuAn']").val() == "") {
+        alert($language['bsc.msg.nhaptencongviec']);
+        return false;
+    }
+    else if ($('.form-chitietduan [name="NguoiPhuTrachIDParent"]').attr("data-idselected") == undefined) {
+        alert($language['bsc.msg.nhapnguoiphutrach']);
+        return false;
+    }
+    else if ($('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val() == undefined || $('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val() == '') {
+        alert($language['bsc.msg.nhapngaybatdau']);
+        return false;
+    }
+    else if ($('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val() == undefined || $('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val() == '') {
+        alert($language['bsc.msg.nhapngayketthuc']);
+        return false;
+    }
+    else {
+        var ngansach = toFloat($('.form-chitietduan #NganSach').val());
+        var ngansachchid = toFloat($('.form-chitietduan #NganSach').attr("data-ngansachchild"));
+        if (ngansachchid > ngansach) {
+            alert($language['bsc.msg.ngansachkhonghople']);
+            return false;
+        }
+    }
+    Loading();
+    $("#txtIDNguoiPhuTrach").val($('.form-chitietduan [name="NguoiPhuTrachIDParent"]').attr("data-idselected"));
+    $("#txtIDNguoiHoTro").val($('.form-chitietduan [name="NguoiHoTroIDParent"]').attr("data-idselected"));
+    $("#txtNgayBatDauDuAn").val($('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceStart"]').val());
+    $("#txtNgayKetThucDuAn").val($('.form-chitietduan .divNgayChoiceDuAn [name="txtNgayChoiceEnd"]').val());
+    var strtenfile = "";
+    $(".form-chitietduan #fileList .tenfile[data-file]").each(function () {
+        strtenfile += $(this).attr('data-file') + "####";
+    });
+    $(".form-chitietduan #txttenfile").val(strtenfile);
+    $("#MoTa").val($(`[name="NoiDungChiTiet"]`).html());
+    var form = $(".form-chitietduan").serializeArray();
+    var formDataDuAn = new FormData();
+    $.each(form, function (i, val) {
+        formDataDuAn.append(val.name, val.value);
+    });
+
+    let dataListCongViecCon = [];
+    $(".tablecongvieccon > tbody > tr[data-idcongvieccon='new-congvieccon']").each(function () {
+        let elRow = $(this);
+        let tencongvieccon = elRow.find('[name="titleChiTietCongViecCon"]').val();
+        let nguoiphutrachid = elRow.find('[name="NguoiPhuTrachIDCongViecCon"]').attr("data-idselected");
+        let elBatDau = elRow.find(`[name="txtNgayChoiceStart"]`);
+        let elKetThuc = elRow.find(`[name="txtNgayChoiceEnd"]`);
+
+        if (tencongvieccon != undefined && tencongvieccon != "") {
+            let item = {
+                TenCongViecCon: tencongvieccon,
+                NguoiPhuTrachID: nguoiphutrachid,
+                NgayChon: `${elBatDau.val()} - ${elKetThuc.val()}`,
+            };
+            dataListCongViecCon.push(item);
+        }
+    });
+    formDataDuAn.append("dataListCongViecCon", JSON.stringify(dataListCongViecCon));
+    $.ajax({
+        type: "POST",
+        url: '/DuAn/Detail',
+        data: formDataDuAn,
+        dataType: "json",
+        success: function (response) {
+            RemoveLoading();
+            if (response.status) {
+                HideModalDuAn();
+                Notify('success', response.msg);
+                if ($("body").attr("class").indexOf("dashboard") > -1 || $("body").attr("class").indexOf("baocaochitietbsc") > -1 ) {
+                    LoadDuAnNew();
+                }
+                if ($("body").attr("class").indexOf("congviecduan") > -1) {
+                    firstload = true;
+                    LoadTable();
+                }
+                else {
+                    LoadTable();
+                }
+                
+            } else {
+                Notify('warning', response.msg);
+            }
+        },
+        processData: false,
+        contentType: false,
+        error: function () {
+            RemoveLoading();
+            Notify('warning', $language['bsc.msg.loiluu']);
+        }
+    });
+    return false;
+}
+
+function XoaDuAn(id) {
+
+    if (id == null) {
+        alert($language['bsc.msg.chon1congviec']);
+    }
+    Lobibox.alert('warning', {
+        msg: $language['bsc.msg.xoacongviec'],
+        buttons: {
+            yes: {
+                'class': 'btn btn-danger',
+                closeOnClick: true,
+                text: $language['bsc.msg.cotieptuc']
+            },
+            no: {
+                'class': 'btn btn-primary',
+                closeOnClick: true,
+                text: $language['bsc.msg.khongdonglai']
+            }
+        },
+        callback: function (lobibox, type) {
+            if (type === 'yes') {
+
+                Loading();
+                $.ajax({
+                    url: '/DuAn/Xoa',
+                    data: { id: id },
+                    type: 'POST',
+                    success: function (data) {
+                        RemoveLoading();
+                        if (data.status == true) {
+                            Notify('success', data.msg);
+                            if ($("body").attr("class").indexOf("dashboard") > -1 || $("body").attr("class").indexOf("baocaochitietbsc") > -1) {
+                                LoadDuAnNew();
+                            }
+                            else {
+                                LoadTable();
+                            }
+                        } else {
+                            Notify('warning', data.msg);
+                        }
+                    },
+                    error: function (a, b, c) {
+                        RemoveLoading();
+                        Notify('warning', $language['bsc.msg.loixoacongviec']);
+                    }
+                });
+
+            }
+        }
+    });
+    return false;
+}
+function TooltipNganSach() {
+
+    $('.progressngansach:not(.tooltipstered)').tooltipster({
+        contentAsHTML: true,
+        interactive: true,
+        arrow: true,
+        theme: 'tooltipster-light',
+        position: 'bottom',
+        interactiveTolerance: 50
+    });
+}
+function toFloat(value) {
+    let result = String(value || '').replaceAll(',', '');
+    return parseFloat(result);
+}
+
+//#region Select Nhân Viên New
+function LoadNhanVienSelect(elNguoiPhuTrach, elNguoiHoTro,loaielement, loai, hasFooter) {
+
+    var listidnhansu = $(`[name="NhanSuDuAn"]`).val();
+    if (listidnhansu == undefined) {
+        listidnhansu = $(`[name="DanhSachNhanSuDuAnID"]`).val();
+        if (listidnhansu == undefined) {
+            listidnhansu = [];
+        }        
+    }
+    if ($("[name='selDuAn']").length == 0) {
+        listidnhansu = [];
+    }
+
+    let elTemp = (loaielement == "pt") ? elNguoiPhuTrach : elNguoiHoTro;
+    var listidCurrent = elTemp.attr('data-idselected');
+    Loading();
+    $.ajax({
+        url: '/CongViecDuAn/jsonNhanSu',
+        cache: false,
+        data: {
+            listidnhansu: listidnhansu,
+            action: loai,
+            listidCurrent: listidCurrent
+        },
+        type: 'POST',
+        dataType: 'JSON',
+        success: function (data) {
+            RemoveLoading();
+            if (elTemp.data('select2')) {
+                elTemp.select2('destroy');
+                elTemp.closest('.assign-box').find('.select2').remove();
+            }
+            elTemp.html(data.Objects);
+            let nameparent = elTemp.closest(".groupphutrachhotro").attr("data-idgroupphutrachhotro");
+            elTemp.select2({
+                width: '100%',
+                allowClear: false,
+                closeOnSelect: loaielement =="pt"?true:false,
+                dropdownCssClass: 'select2custom',
+                dropdownParent: $("#myModalChiTietDuAn"),                
+                templateResult: formatResultSelect2,
+                templateFooter: () => formatFooterSelect2(hasFooter, nameparent, loaielement)
+            });
+
+            if (loaielement == "pt") {
+                var arrayHotroID = elNguoiHoTro!=null && elNguoiHoTro.attr('data-idselected') != null ? elNguoiHoTro.attr('data-idselected').splitSafe(',') : [];
+                if (arrayHotroID.length > 0) {
+                    for (var i = 0; i <= arrayHotroID.length; i++) {
+                        elTemp.find(`option[value="${arrayHotroID[i]}"]`).prop('disabled', true);
+                    }
+                }
+                elTemp.val(elTemp.attr('data-idselected')).trigger('change');
+                elTemp.select2('open');
+                elTemp.unbind('select2:select');
+                elTemp.on('select2:select', function (e) {
+                    LoadTextNhanVien(elTemp.val(), elNguoiPhuTrach, elNguoiHoTro, "pt", hasFooter);
+                    elTemp.attr('data-idselected', elTemp.val());
+                    if (typeof setIsEditRow == 'function') {
+                        setIsEditRow(elTemp.closest("tr"));
+                    }
+                });
+            }
+            else {
+                var arrayPhuTrachID = elNguoiPhuTrach.attr('data-idselected') != null ? elNguoiPhuTrach.attr('data-idselected').splitSafe(',') : [];
+                if (arrayPhuTrachID.length > 0) {
+                    for (var i = 0; i <= arrayPhuTrachID.length; i++) {
+                        elTemp.find(`option[value="${arrayPhuTrachID[i]}"]`).prop('disabled', true);
+                    }
+                }
+
+                elTemp.val(elTemp.attr('data-idselected').splitSafe(',')).trigger('change');
+                elTemp.select2('open');
+
+                elTemp.unbind('select2:select');
+                elTemp.on('select2:select', function (e) {
+                    LoadTextNhanVien(elTemp.val(), elNguoiPhuTrach, elNguoiHoTro, "ht", hasFooter);
+                    elTemp.attr('data-idselected', elTemp.val());
+                    if (typeof setIsEditRow == 'function') {
+                        setIsEditRow(elTemp.closest("tr"));
+                    }
+                }).on('select2:unselect', function (e) {
+                    LoadTextNhanVien(elTemp.val(), elNguoiPhuTrach, elNguoiHoTro, "ht", hasFooter);
+                    elTemp.attr('data-idselected', elTemp.val());
+                    if (typeof setIsEditRow == 'function') {
+                        setIsEditRow(elTemp.closest("tr"));
+                    }
+
+                });
+            }
+        }
+    });
+    return false;
+}
+function formatResultSelect2(data) {
+    var chucvu = $(data.element).data('chucvu');
+    var bophan = $(data.element).data('bophan');
+    if (chucvu == undefined) chucvu = data.chucvu;
+    if (bophan == undefined) bophan = data.bophan;
+    var $result = $(
+        '<div class="row">' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + data.text + '</div>' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + chucvu + '</div>' +
+        '<div class="col-md-4 col-xs-4" style="font-size:12px;">' + bophan + '</div>' +
+        '</div>'
+    );
+    return $result;
+}
+function formatFooterSelect2(checkhasFooter, nameparent, loaiphutrachselect) {
+    if (checkhasFooter) {
+        return `<div class="text-center"><a class='btn btn-main-outline' style='cursor:pointer;margin-top:10px;padding: 3px 6px;font-size: 12px;' onclick="return callBackLoadNhanVienSelect('` + nameparent + `', '` + loaiphutrachselect +`', 'invite');">Mời tham gia</a></div>`;
+    }
+    else {
+        return '';
+    }
+}
+
+function callBackLoadNhanVienSelect(nameparent, loaiphutrachselect, loai) {
+    let elNguoiPhuTrach = null;
+    let elNguoiHoTro = null;
+    if (nameparent.indexOf("groupparent") > -1) {
+        
+        elNguoiPhuTrach = $(".groupphutrachhotro[data-idgroupphutrachhotro='" + nameparent + "']").find("[name='NguoiPhuTrachIDParent']");
+        elNguoiHoTro = $(".groupphutrachhotro[data-idgroupphutrachhotro='" + nameparent + "']").find("[name='NguoiHoTroIDParent']");
+        console.log(elNguoiPhuTrach)
+    }
+    else {
+        elNguoiPhuTrach = $(".groupphutrachhotro[data-idgroupphutrachhotro='" + nameparent + "']").find("[name='NguoiPhuTrachIDCongViecCon']");
+    }  
+    LoadNhanVienSelect(elNguoiPhuTrach, elNguoiHoTro, loaiphutrachselect, loai, true);
+}
+function LoadTextNhanVien(id, elNguoiPhuTrach, elNguoiHoTro, loai, hasFooter) {
+
+    if (loai == 'pt') {
+        var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id + "']");
+        if (htmlTemp.length > 0) {
+            htmlTemp.find(".aliasname").tooltipster('destroy');
+            htmlTemp.find(".aliasname").removeClass("tooltipstered");
+            htmlTemp.find(".aliasname").removeClass("initAlias");
+            var htmlNew = htmlTemp.prop('outerHTML');
+            elNguoiPhuTrach.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(htmlNew);
+        }
+        else {
+            var txtHoTroNew = "";
+            var selectedOption = elNguoiPhuTrach.find(':selected')[0];
+            var selectedText = $(selectedOption).text();
+            var chucvu = $(selectedOption).data('chucvu');
+            var bophan = $(selectedOption).data('bophan');
+            if (chucvu != '' && chucvu != undefined) {
+                var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            else {
+                var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                txtHoTroNew += htmlNew.prop('outerHTML');
+            }
+            elNguoiPhuTrach.closest(".divWrapPhuTrach").find(".spantennguoihotro").replaceWith(txtHoTroNew);
+            if (elNguoiPhuTrach.closest(".divWrapPhuTrach").find(".namephutrach").length > 0) {
+                elNguoiPhuTrach.closest(".divWrapPhuTrach").find(".namephutrach").text(selectedText);
+            }
+        }
+        elNguoiPhuTrach.closest(".divWrapPhuTrach").find(".spantennguoihotro").on('click', function () {
+            LoadNhanVienSelect(elNguoiPhuTrach, elNguoiHoTro, "pt", "", hasFooter);
+        });
+        initAliasName();
+    }
+    else {
+        var txtHoTroNew = "";
+        if (id.length > 0) {
+            for (var i = 0; i < id.length; i++) {
+                var htmlTemp = $(".templateNhanSu div[data-idnhanvien='" + id[i] + "']");
+                if (htmlTemp.length > 0) {
+                    htmlTemp.find(".aliasname").tooltipster('destroy');
+                    htmlTemp.find(".aliasname").removeClass("tooltipstered");
+                    htmlTemp.find(".aliasname").removeClass("initAlias");
+                    var htmlNew = htmlTemp.prop('outerHTML');
+                    txtHoTroNew += htmlNew;
+                }
+                else {
+                    var selectedOption = elNguoiHoTro.find(':selected')[i];
+                    var selectedText = $(selectedOption).text();
+                    var chucvu = $(selectedOption).data('chucvu');
+                    var bophan = $(selectedOption).data('bophan');
+                    if (chucvu != '' && chucvu != undefined) {
+                        var htmlNew = $($('#templateAliasNhanVienHasChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                    else {
+                        var htmlNew = $($('#templateAliasNhanVienNoChucVu').html().replaceAll('{idnhanvien}', id).replaceAll('{tennhanvien}', selectedText).replaceAll('{tenchucvu}', chucvu).replaceAll('{tenbophan}', bophan));
+                        txtHoTroNew += htmlNew.prop('outerHTML');
+                    }
+                }
+            }
+        }
+        else {
+            txtHoTroNew = `<p class="spantennguoihotro nouser"><i class="fa fa-users" aria-hidden="true"></i></p>`;
+        }
+        elNguoiHoTro.closest(".divWrapHoTro").find(".divNhanSuHoTro").html(txtHoTroNew);
+        elNguoiHoTro.closest(".divWrapHoTro").find(".spantennguoihotro").on('click', function () {
+            LoadNhanVienSelect(elNguoiPhuTrach, elNguoiHoTro, "ht", "", hasFooter);
+        });
+
+        initAliasName();
+    }
+    return false;
+}
+
+//#endregion
+
+//#region Update Chi tiết File đình kèm
+function uploadAddURL(idbc) {
+    var fileUrl = prompt($language['bsc.title.nhapurl'], "");
+    if (fileUrl != null) {
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = fileUrl;
+        $('.fileListChiTiet').append('<li class="tenfile" data-file="' + fileName + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return uploadRemoveFile(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+        $('.fileListChiTiet').next().hide();
+    }
+    return false;
+}
+
+function uploadBrowseFilesServers(idbc) {
+
+    var popupWinWidth = 1000;
+    var popupWinHeight = 800;
+    var left = (screen.width - popupWinWidth) / 2;
+    var top = (screen.height - popupWinHeight) / 4;
+
+    var t = window.open('/FileManager/?multi=true', 'File Manager',
+        'resizable=yes, width=' + popupWinWidth
+        + ', height=' + popupWinHeight + ', top='
+        + top + ', left=' + left);
+    window.selectedFiles = function (files) {
+        uploadSelectFile(idbc, files);
+    }
+
+    return false;
+}
+function uploadSelectFile(idbc, uniqueFiles) {
+    var length = uniqueFiles.length;
+    for (var i = 0; i < length; i++) {
+        fileUrl = uniqueFiles[i];
+        arrayFiles.push({
+            id: idbc,
+            file: fileUrl
+        });
+        var fileName = getFileName(fileUrl);
+        $('.fileListChiTiet').append('<li class="tenfile" data-file="' + fileUrl + '">' + fileName + '<div class="pull-right"><a class="text-success" onclick="return ViewFile(\'' + fileUrl + '\')"><i class="fa fa-eye" aria-hidden="true"></i></a><a class="text-primary" href="\'' + fileUrl + '\'"><i class="fa fa-download" aria-hidden="true"></i></a><a class="text-danger" onclick="return uploadRemoveFile(this)"><i class="fa fa-trash" aria-hidden="true"></i></a></div><div class="clearfix"></div></li>');
+       
+    }
+    if (length > 0) {
+        $('.fileListChiTiet').next().hide();
+    }
+}
+
+function uploadRemoveFile(e) {
+    if (confirm($language['bsc.msg.xoafile'])) {
+
+        $(e).closest('.tenfile').remove();
+        if ($('.fileListChiTiet li').length == 0) {
+            $('.fileListChiTiet').next().show();
+        }
+    }
+    return false;
+}
+
+//#endregion
+function HideModalDuAn() {
+    $('#myModalChiTietDuAn .modal-dialog').removeClass('medium');
+    $('#myModalChiTietDuAn .modal-title').html('');
+    $('#myModalChiTietDuAn .modal-body').html('');
+    $('#myModalChiTietDuAn').modal('hide');
+    $('.modal-backdrop').remove();
+}
